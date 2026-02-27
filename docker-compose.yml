@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ./Obsidian_premium/backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - SQLITE_PATH=/app/data/data.sqlite
+    volumes:
+      - backend_data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Obsidian_premium/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: ./bot - secretaria da minha vida
+      dockerfile: Dockerfile
+    env_file:
+      - ./bot - secretaria da minha vida/.env
+    environment:
+      - OBSIDIAN_API_BASE_URL=http://backend:4000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend_data:

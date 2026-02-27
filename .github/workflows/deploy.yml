@@ -1,0 +1,29 @@
+# Deploy automático na VPS via SSH (push em main/master).
+# Secrets obrigatórios no repositório: VPS_HOST, VPS_USER, VPS_SSH_KEY, DEPLOY_PATH.
+# Opcional: VPS_PORT (padrão 22).
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          envs: DEPLOY_PATH
+          script: |
+            set -e
+            cd "$DEPLOY_PATH"
+            git pull
+            docker compose build --pull
+            docker compose up -d
