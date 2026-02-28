@@ -12,6 +12,7 @@ http:
         certResolver: letsencrypt
     gestor-ideias-http:
       rule: "Host(`gestor-ideias.fetch-ia.com`)"
+      service: gestor-ideias-svc
       middlewares:
         - redirect-https
       entryPoints:
