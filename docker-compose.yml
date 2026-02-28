@@ -18,7 +18,7 @@ services:
       context: ./Obsidian_premium/frontend
       dockerfile: Dockerfile
     ports:
-      - "8080:80"
+      - "8888:80"
     depends_on:
       - backend
     restart: unless-stopped
