@@ -1,5 +1,6 @@
 import type { Document } from '@/modules/documents/types'
 import { fetchDocuments as fetchDocsApi, createDocumentApi, updateDocumentApi, deleteDocumentApi } from '@/api/documentsApi'
+import { uuid } from '@/utils/uuid'
 
 const STORAGE_KEY = 'obsidian-premium-documents'
 
@@ -19,7 +20,7 @@ function normalizeDocument(doc: Partial<Document>): { normalized: Document; chan
   const hasValidCreatedAt = typeof doc.createdAt === 'string' && doc.createdAt.trim().length > 0
 
   const normalized: Document = {
-    id: hasValidId ? doc.id! : crypto.randomUUID(),
+    id: hasValidId ? doc.id! : uuid(),
     title: hasValidTitle ? doc.title! : 'Sem título',
     cover: hasValidCover ? doc.cover! : '',
     content: hasValidContent ? doc.content! : '',

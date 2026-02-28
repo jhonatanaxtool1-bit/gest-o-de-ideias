@@ -1,3 +1,4 @@
+import { uuid } from '@/utils/uuid'
 import type { PlanningCard, PlanningCardCreateInput, PlanningCardUpdateInput } from './types'
 
 const DEFAULT_API_BASE_URL = ''
@@ -21,7 +22,7 @@ function getEndpoint(path: string): string {
 }
 
 function genId(): string {
-  return crypto.randomUUID()
+  return uuid()
 }
 
 function now(): string {

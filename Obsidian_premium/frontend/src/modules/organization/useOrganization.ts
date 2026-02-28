@@ -9,6 +9,7 @@ import {
   updateAreaApi,
   updateInterestApi,
 } from '@/api/organizationApi'
+import { uuid } from '@/utils/uuid'
 import type { Area, Interest } from './types'
 
 export function useOrganization() {
@@ -32,7 +33,7 @@ export function useOrganization() {
     if (duplicate) return null
 
     const created = await createInterestApi({
-      id: crypto.randomUUID(),
+      id: uuid(),
       name: cleaned,
       createdAt: new Date().toISOString(),
     })
@@ -49,7 +50,7 @@ export function useOrganization() {
     if (duplicate) return null
 
     const created = await createAreaApi({
-      id: crypto.randomUUID(),
+      id: uuid(),
       name: cleaned,
       interestId,
       createdAt: new Date().toISOString(),

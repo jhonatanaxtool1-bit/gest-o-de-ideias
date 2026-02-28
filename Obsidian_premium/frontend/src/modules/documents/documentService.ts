@@ -1,9 +1,10 @@
 import type { Document, DocumentCreate, DocumentUpdate, Relation } from './types'
 import { hasDocumentsStorageValue, loadDocuments, saveDocuments } from '@/storage/documentStorage'
 import { extractWikiLinks } from '@/utils/linkParser'
+import { uuid } from '@/utils/uuid'
 
 function generateId(): string {
-  return crypto.randomUUID()
+  return uuid()
 }
 
 function now(): string {

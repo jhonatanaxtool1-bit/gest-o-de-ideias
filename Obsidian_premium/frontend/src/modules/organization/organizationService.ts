@@ -1,3 +1,4 @@
+import { uuid } from '@/utils/uuid'
 import type { Area, Interest } from './types'
 import { fetchInterests, createInterestApi, updateInterestApi, deleteInterestApi, fetchAreas, createAreaApi, updateAreaApi, deleteAreaApi } from '@/api/organizationApi'
 
@@ -9,7 +10,7 @@ function now(): string {
 }
 
 function genId(): string {
-  return crypto.randomUUID()
+  return uuid()
 }
 
 function normalizeInterests(value: unknown): Interest[] {

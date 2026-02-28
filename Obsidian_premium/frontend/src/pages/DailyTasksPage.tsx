@@ -6,14 +6,12 @@ import {
   fetchDailyTasksApi,
   updateDailyTaskApi,
 } from '@/api/dailyTasksApi'
+import { uuid } from '@/utils/uuid'
 
 type TaskFilter = 'all' | 'pending' | 'done'
 
 function createTaskId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  return `task-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  return uuid()
 }
 
 export function DailyTasksPage() {

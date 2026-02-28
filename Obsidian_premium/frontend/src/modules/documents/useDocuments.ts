@@ -6,6 +6,7 @@ import {
   fetchDocuments,
   updateDocumentApi,
 } from '@/api/documentsApi'
+import { uuid } from '@/utils/uuid'
 import { extractWikiLinks } from '@/utils/linkParser'
 
 export function useDocuments() {
@@ -37,7 +38,7 @@ export function useDocuments() {
 
   const create = useCallback(async (input: DocumentCreate): Promise<Document | null> => {
     const payload: Document = {
-      id: crypto.randomUUID(),
+      id: uuid(),
       createdAt: new Date().toISOString(),
       title: input.title || 'Sem título',
       cover: input.cover ?? '',
