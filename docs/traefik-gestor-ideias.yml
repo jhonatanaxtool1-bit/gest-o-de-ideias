@@ -1,0 +1,28 @@
+# Copie este arquivo para a VPS em: /data/coolify/proxy/dynamic/gestor-ideias.yml
+# Comando: sudo nano /data/coolify/proxy/dynamic/gestor-ideias.yml
+
+http:
+  routers:
+    gestor-ideias-https:
+      rule: "Host(`gestor-ideias.fetch-ia.com`)"
+      service: gestor-ideias-svc
+      entryPoints:
+        - https
+      tls:
+        certResolver: letsencrypt
+    gestor-ideias-http:
+      rule: "Host(`gestor-ideias.fetch-ia.com`)"
+      middlewares:
+        - redirect-https
+      entryPoints:
+        - http
+  middlewares:
+    redirect-https:
+      redirectScheme:
+        scheme: https
+  services:
+    gestor-ideias-svc:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:8888"
+        passHostHeader: true
