@@ -327,6 +327,13 @@ async def handler_mensagem_voz(update: Update, context: ContextTypes.DEFAULT_TYP
 def main() -> None:
     """Valida config, monta a aplicação e inicia o polling."""
     config.validar_config()
+    # Diagnóstico: confirma se a chave OpenRouter está presente (sem expor o valor)
+    key = getattr(config, "OPENROUTER_API_KEY", "") or ""
+    logger.info(
+        "OPENROUTER_API_KEY definida: %s (len=%d)",
+        "sim" if key.strip() else "não",
+        len(key),
+    )
     # Validação mínima: OBSIDIAN_API_BASE_URL deve estar configurado via assistant.config
     app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handler_mensagem_texto))
