@@ -54,7 +54,6 @@ function DeleteModal({ isOpen, title, message, itemName, onConfirm, onCancel }: 
 export function OrganizationPage() {
   const {
     interests,
-    areas,
     areasByInterestId,
     addInterest,
     addArea,

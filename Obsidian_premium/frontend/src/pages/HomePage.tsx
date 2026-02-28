@@ -63,7 +63,7 @@ function calculateLayout(nodes: Node[], edges: Edge[]) {
 
 export function HomePage() {
   const { documents } = useDocuments()
-  const { interests, areas, areasByInterestId } = useOrganization()
+  const { interests, areas } = useOrganization()
   const hasSetDefaultInterest = useRef(false)
 
   const [expandedInterests, setExpandedInterests] = useState<Set<string>>(new Set())
@@ -74,8 +74,8 @@ export function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
   const toggleInterest = useCallback((interestId: string) => {
     setExpandedInterests((prev) => {

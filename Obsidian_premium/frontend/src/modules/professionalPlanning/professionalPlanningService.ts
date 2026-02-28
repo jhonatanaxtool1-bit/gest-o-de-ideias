@@ -24,6 +24,10 @@ function genId(): string {
   return crypto.randomUUID()
 }
 
+function now(): string {
+  return new Date().toISOString()
+}
+
 function normalizeCards(value: unknown): PlanningCard[] {
   if (!Array.isArray(value)) return []
   return value
