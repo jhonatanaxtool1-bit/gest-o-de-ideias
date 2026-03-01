@@ -25,5 +25,12 @@ jobs:
             set -e
             cd "$DEPLOY_PATH"
             git pull
+            # Criar .env do bot a partir do exemplo se não existir (não está no repo por segurança)
+            BOT_ENV="bot - secretaria da minha vida/.env"
+            BOT_EXAMPLE="bot - secretaria da minha vida/.env.example"
+            if [ ! -f "$BOT_ENV" ] && [ -f "$BOT_EXAMPLE" ]; then
+              cp "$BOT_EXAMPLE" "$BOT_ENV"
+              echo "Criado $BOT_ENV a partir de .env.example. Configure os tokens no servidor e reinicie os containers."
+            fi
             docker compose build --pull
             docker compose up -d
