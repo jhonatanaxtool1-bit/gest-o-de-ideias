@@ -65,6 +65,7 @@ OBSIDIAN_API_BASE_URL=http://localhost:4000
 | `OPENROUTER_API_KEY` | Sim | Chave da API OpenRouter |
 | `OBSIDIAN_API_BASE_URL` | Sim | URL do backend do Obsidian (ex.: `http://localhost:4000`) |
 | `OPENROUTER_MODEL` | Não | Modelo LLM (padrão: `meta-llama/llama-3-8b-instruct`) |
+teste
 
 ### Execução
 
