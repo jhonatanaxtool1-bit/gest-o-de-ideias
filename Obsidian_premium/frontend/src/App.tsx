@@ -6,6 +6,7 @@ import { OrganizationPage } from '@/pages/OrganizationPage'
 import { IdeasPage } from '@/pages/IdeasPage'
 import { IdeaEditorPage } from '@/pages/IdeaEditorPage'
 import { ProfessionalPlanningPage } from '@/pages/ProfessionalPlanningPage'
+import { PersonalPlanningPage } from '@/pages/PersonalPlanningPage'
 import { DailyTasksPage } from '@/pages/DailyTasksPage'
 import { IdeasVisualizationPage } from '@/pages/IdeasVisualizationPage'
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="visualizacao-ideias" element={<IdeasVisualizationPage />} />
           <Route path="tarefas-diarias" element={<DailyTasksPage />} />
           <Route path="planejamento-profissional" element={<ProfessionalPlanningPage />} />
+          <Route path="planejamento-pessoal" element={<PersonalPlanningPage />} />
           <Route path="ideia/:id" element={<IdeaEditorPage />} />
           <Route path="doc/:id" element={<DocumentPage />} />
           <Route path="doc/new" element={<Navigate to="/ideia/new" replace />} />

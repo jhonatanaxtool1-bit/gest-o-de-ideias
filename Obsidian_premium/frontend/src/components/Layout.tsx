@@ -4,6 +4,7 @@ export function Layout() {
   const location = useLocation()
   const isOrganization = location.pathname === '/organizacao'
   const isProfessionalPlanning = location.pathname === '/planejamento-profissional'
+  const isPersonalPlanning = location.pathname === '/planejamento-pessoal'
   const isDailyTasks = location.pathname === '/tarefas-diarias'
   const isIdeasVisualization = location.pathname === '/visualizacao-ideias'
 
@@ -39,6 +40,14 @@ export function Layout() {
             }`}
           >
             Planejamento Empresarial
+          </Link>
+          <Link
+            to="/planejamento-pessoal"
+            className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+              isPersonalPlanning ? 'bg-accent/15 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+            }`}
+          >
+            Planejamento pessoal
           </Link>
           <div className="pt-2 mt-2 border-t border-zinc-800">
             <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-zinc-500">

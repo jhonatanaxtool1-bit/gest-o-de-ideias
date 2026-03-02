@@ -1,4 +1,5 @@
 const Database = require('better-sqlite3')
+const { runMigrations } = require('./runMigrations')
 
 function createDb(dbPath) {
   const db = new Database(dbPath)
@@ -70,6 +71,9 @@ function createDb(dbPath) {
       );`
     )
     .run()
+
+  runMigrations(db)
+
   // seed default organization if empty
   try {
     const count = db.prepare('SELECT COUNT(*) as c FROM interests').get().c

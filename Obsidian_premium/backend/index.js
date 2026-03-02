@@ -8,6 +8,7 @@ const documentsRouter = require('./routes/documents')
 const organizationRouter = require('./routes/organization')
 const dailyTasksRouter = require('./routes/dailyTasks')
 const professionalPlanningRouter = require('./routes/professionalPlanning')
+const personalPlanningRouter = require('./routes/personalPlanning')
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -23,6 +24,7 @@ app.use('/api/documents', documentsRouter)
 app.use('/api', organizationRouter) // organization routes: /api/interests and /api/areas
 app.use('/api', dailyTasksRouter)
 app.use('/api', professionalPlanningRouter)
+app.use('/api', personalPlanningRouter)
 
 app.get('/', (req, res) => {
   res.json({ status: 'ok' })
