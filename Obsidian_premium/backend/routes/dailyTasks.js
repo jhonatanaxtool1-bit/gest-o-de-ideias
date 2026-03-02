@@ -14,7 +14,11 @@ function rowToTask(row) {
 
 router.get('/daily-tasks', (req, res) => {
   const db = req.app.locals.db
-  const rows = db.prepare('SELECT * FROM daily_tasks ORDER BY createdAt DESC').all()
+  const rows = db
+    .prepare(
+      `SELECT * FROM daily_tasks WHERE date(createdAt) = date('now') ORDER BY createdAt DESC`
+    )
+    .all()
   res.json(rows.map(rowToTask))
 })
 
