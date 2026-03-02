@@ -191,6 +191,85 @@ def _formatar_interesses_areas(interesses: list, areas: list) -> str:
     )
 
 
+PROMPT_ESCOLHER_PAR_FALLBACK = """O usuário quer salvar uma ideia, mas o par (interesse, área) que foi sugerido não existe na lista cadastrada.
+
+Sua tarefa: escolher exatamente UM interesse e UMA área da lista abaixo que façam mais sentido para classificar essa ideia.
+
+Regras:
+- Retorne SOMENTE um JSON válido: {"interest": "nome exato do interesse", "area": "nome exato da área"}
+- Use APENAS nomes que aparecem na lista (interesse exatamente como em «...», área exatamente como na lista).
+- A área escolhida DEVE pertencer ao interesse escolhido (cada área está listada sob um único interesse).
+- Não invente nem altere nomes."""
+
+
+def escolher_par_interesse_area_fallback(
+    titulo: str,
+    texto_ideia: str,
+    interest_sugerido: str,
+    area_sugerida: str,
+    interesses: list,
+    areas: list,
+) -> dict | None:
+    """
+    Quando a busca por (interesse, área) falhou, pergunta à LLM qual par da lista
+    real faz mais sentido para a ideia. Retorna {"interest": str, "area": str} ou None.
+    """
+    if not interesses and not areas:
+        return None
+    hierarquia = _formatar_interesses_areas(interesses, areas)
+    if not hierarquia:
+        return None
+
+    user = (
+        f"LISTA DE INTERESSES E ÁREAS (use apenas estes nomes):\n{hierarquia}\n\n"
+        f"Par que foi sugerido (não encontrado): interesse={interest_sugerido!r}, área={area_sugerida!r}\n\n"
+        f"IDEIA A CLASSIFICAR:\nTítulo: {titulo}\n\nTexto: {(texto_ideia or '')[:800]}\n\n"
+        "Retorne apenas o JSON com interest e area (nomes exatos da lista)."
+    )
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": [
+            {"role": "system", "content": PROMPT_ESCOLHER_PAR_FALLBACK},
+            {"role": "user", "content": user},
+        ],
+    }
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        resp = requests.post(
+            OPENROUTER_BASE_URL,
+            json=payload,
+            headers=headers,
+            timeout=OPENROUTER_TIMEOUT,
+        )
+        resp.raise_for_status()
+        body = resp.json()
+    except requests.RequestException as e:
+        logger.warning("Falha ao pedir par interesse/área (fallback): %s", e)
+        return None
+    except json.JSONDecodeError:
+        return None
+
+    choices = body.get("choices") or []
+    if not choices:
+        return None
+
+    content = (choices[0].get("message") or {}).get("content") or ""
+    parsed = _extrair_json(content)
+    if not isinstance(parsed, dict):
+        return None
+
+    interest = str(parsed.get("interest") or "").strip()
+    area = str(parsed.get("area") or "").strip()
+    if not interest or not area:
+        return None
+
+    return {"interest": interest, "area": area}
+
+
 def refinar_ideia(titulo: str, corpo: str) -> dict | None:
     """
     Refina título/corpo e gera uma descrição curta antes de salvar.

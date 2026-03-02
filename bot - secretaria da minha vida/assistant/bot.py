@@ -52,7 +52,7 @@ def _parece_pergunta_interesses_areas(texto: str) -> bool:
 
 
 def _formatar_lista_interesses_areas(interesses: list[dict], areas: list[dict]) -> str:
-    """Formata: Interesse - Área - Área (uma linha por interesse)."""
+    """Formata em lista numerada hierárquica: 1 – Interesse, 1.1 – Área, 1.2 – Área, 2 – Interesse..."""
     areas_by_interest_id: dict[str, list[str]] = {}
     for a in (areas or []):
         interest_id = a.get("interestId")
@@ -61,20 +61,24 @@ def _formatar_lista_interesses_areas(interesses: list[dict], areas: list[dict]) 
             continue
         areas_by_interest_id.setdefault(interest_id, []).append(name)
 
-    linhas: list[str] = []
-    for i in sorted((interesses or []), key=lambda it: ((it.get("name") or "").strip().lower())):
+    interesses_ordenados = sorted(
+        (interesses or []), key=lambda it: ((it.get("name") or "").strip().lower())
+    )
+    if not interesses_ordenados:
+        return "Suas categorias são:\n\n(sem interesses/áreas cadastrados)"
+
+    linhas: list[str] = ["Suas categorias são:\n"]
+    for idx, i in enumerate(interesses_ordenados, start=1):
         interest_name = (i.get("name") or "").strip()
         if not interest_name:
             continue
         a_names = sorted(set(areas_by_interest_id.get(i.get("id"), [])), key=lambda s: s.lower())
-        if a_names:
-            linhas.append(" - ".join([interest_name, *a_names]))
-        else:
-            linhas.append(f"{interest_name} - (nenhuma área)")
+        linhas.append(f"{idx} – {interest_name}")
+        for sub_idx, area_name in enumerate(a_names, start=1):
+            linhas.append(f"{idx}.{sub_idx} – {area_name}")
+        linhas.append("")  # linha em branco entre interesses
 
-    if not linhas:
-        return "Suas categorias (interesses e áreas) são:\n(sem interesses/áreas cadastrados)"
-    return "Suas categorias (interesses e áreas) são:\n" + "\n".join(linhas)
+    return "\n".join(linhas).rstrip()
 
 
 def _normalize(s: str) -> str:
@@ -208,6 +212,19 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
 
             if interest and area:
                 par = _resolver_interesse_area(interest, area)
+                if not par:
+                    try:
+                        interesses_fb = obsidian_service.listar_interesses()
+                        areas_fb = obsidian_service.listar_areas()
+                        fallback = llm.escolher_par_interesse_area_fallback(
+                            titulo, conteudo_final or corpo, interest, area, interesses_fb, areas_fb
+                        )
+                        if fallback:
+                            par = _resolver_interesse_area(
+                                fallback["interest"], fallback["area"]
+                            )
+                    except requests.RequestException:
+                        pass
                 if par:
                     interest_final, area_final = par
                     obsidian_service.criar_documento(

@@ -88,7 +88,35 @@ O bot precisa que o backend esteja no ar para salvar ideias e tarefas. O fronten
 
 ---
 
-## 4. FFmpeg (transcrição de áudio)
+## 4. Docker (produção)
+
+Na raiz do repositório:
+
+```bash
+docker compose up -d
+```
+
+- **Backend** em `4001:4000`, **frontend** em `8813:80`, **bot** usa o mesmo backend via rede interna.
+- O bot precisa do `.env` em `bot - secretaria da minha vida/.env` (não vai no Git); no servidor, crie esse arquivo com `TELEGRAM_BOT_TOKEN`, `OPENROUTER_API_KEY` e, no compose, `OBSIDIAN_API_BASE_URL` já vem como `http://backend:4000`.
+
+### Importante: um único stack
+
+**Bot e painel Obsidian Premium precisam usar o mesmo backend (mesma instância, mesmo banco).**  
+Se houver dois stacks (por exemplo `gestao-ideias-*` e `gest-o-de-ideias-*`), cada um terá seu próprio backend e seu próprio SQLite. O painel pode mostrar os interesses/áreas que você cadastrou em um backend, e o bot pode responder com "Pessoal - Inbox - Áreas" por estar conectado ao outro backend (só com os dados iniciais).
+
+**Solução:** subir **apenas um** `docker compose` a partir da raiz do repo. Parar e remover o outro stack, depois:
+
+```bash
+cd ~/gest-o-de-ideias   # raiz do repositório (ajuste o caminho)
+docker compose down      # se já existir algum stack deste compose
+docker compose up -d     # sobe backend + frontend + bot, todos no mesmo backend
+```
+
+Assim, o painel e o bot consultam a mesma API e o mesmo SQLite; as categorias ficam unificadas.
+
+---
+
+## 5. FFmpeg (transcrição de áudio)
 
 Para mensagens de voz funcionarem, instale o FFmpeg:
 
