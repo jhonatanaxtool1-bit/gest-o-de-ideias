@@ -4,6 +4,11 @@ Nenhum valor sensível hardcoded.
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Suporte a execução local (fora do Docker) e a leitura opcional de `.env` montado no container.
+# Não sobrescreve variáveis já definidas pelo ambiente/compose.
+load_dotenv(override=False)
 
 VARIAVEIS_OBRIGATORIAS = (
     "TELEGRAM_BOT_TOKEN",

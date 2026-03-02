@@ -28,7 +28,9 @@ services:
       context: ./bot - secretaria da minha vida
       dockerfile: Dockerfile
     env_file:
-      - ./bot - secretaria da minha vida/.env
+      - "./bot - secretaria da minha vida/.env"
+    volumes:
+      - "./bot - secretaria da minha vida/.env:/app/.env:ro"
     environment:
       - OBSIDIAN_API_BASE_URL=http://backend:4000
     depends_on:
