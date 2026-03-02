@@ -156,7 +156,7 @@ export function HomePage() {
     })
   }, [documents, selectedInterest, selectedArea, areas, searchQuery])
 
-  const { graphNodes, graphEdges } = useMemo(() => {
+  const { graphNodes, graphEdges } = useMemo<{ graphNodes: Node[]; graphEdges: Edge[] }>(() => {
     const nodes: Node[] = []
     const edges: Edge[] = []
 

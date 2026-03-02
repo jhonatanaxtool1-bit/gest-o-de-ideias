@@ -25,10 +25,6 @@ function genId(): string {
   return uuid()
 }
 
-function now(): string {
-  return new Date().toISOString()
-}
-
 function normalizeCards(value: unknown): PlanningCard[] {
   if (!Array.isArray(value)) return []
   return value
@@ -43,8 +39,8 @@ function normalizeCards(value: unknown): PlanningCard[] {
       priority: item.priority === 'low' || item.priority === 'medium' || item.priority === 'high' ? item.priority : 'low',
       isFinalized: typeof item.isFinalized === 'boolean' ? item.isFinalized : false,
       completedAt: typeof item.completedAt === 'string' ? item.completedAt : null,
-      createdAt: typeof item.createdAt === 'string' ? item.createdAt : now(),
-      updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : now(),
+      createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+      updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString(),
     }))
     .filter((item) => item.title.trim().length > 0)
 }
