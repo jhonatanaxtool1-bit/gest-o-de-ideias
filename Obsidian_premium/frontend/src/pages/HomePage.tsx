@@ -74,8 +74,8 @@ export function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([] as Node[])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([] as Edge[])
 
   const toggleInterest = useCallback((interestId: string) => {
     setExpandedInterests((prev) => {
