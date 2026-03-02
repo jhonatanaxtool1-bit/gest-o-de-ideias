@@ -73,8 +73,8 @@ def _formatar_lista_interesses_areas(interesses: list[dict], areas: list[dict]) 
             linhas.append(f"{interest_name} - (nenhuma área)")
 
     if not linhas:
-        return "Suas categorias são:\n(sem interesses/áreas cadastrados)"
-    return "Suas categorias são:\n" + "\n".join(linhas)
+        return "Suas categorias (interesses e áreas) são:\n(sem interesses/áreas cadastrados)"
+    return "Suas categorias (interesses e áreas) são:\n" + "\n".join(linhas)
 
 
 def _normalize(s: str) -> str:
@@ -302,7 +302,16 @@ async def handler_mensagem_voz(update: Update, context: ContextTypes.DEFAULT_TYP
         if not (texto and texto.strip()):
             await update.message.reply_text("Não foi possível transcrever o áudio.")
             return
-        await _processar_texto_e_responder(texto.strip(), update, context)
+        texto = texto.strip()
+        if _parece_pergunta_interesses_areas(texto):
+            try:
+                interesses = obsidian_service.listar_interesses()
+                areas = obsidian_service.listar_areas()
+                await update.message.reply_text(_formatar_lista_interesses_areas(interesses, areas))
+            except requests.RequestException:
+                await update.message.reply_text("⚠️ Não consegui carregar interesses/áreas agora (servidor offline).")
+            return
+        await _processar_texto_e_responder(texto, update, context)
     except audio.FFmpegNotFoundError:
         await update.message.reply_text(
             "Para usar mensagens de voz, instale o FFmpeg e adicione ao PATH do sistema.\n\n"
