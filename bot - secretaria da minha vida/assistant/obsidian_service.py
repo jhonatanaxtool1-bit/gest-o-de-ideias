@@ -75,3 +75,18 @@ def criar_card_planejamento(title: str, status: str = "todo", priority: str = "m
     resp.raise_for_status()
     return resp.json()
 
+
+def criar_card_planejamento_pessoal(title: str, status: str = "todo", priority: str = "medium") -> dict:
+    payload = {
+        "id": str(uuid.uuid4()),
+        "title": title,
+        "status": status,
+        "priority": priority,
+        "isFinalized": False,
+        "createdAt": datetime.utcnow().isoformat(),
+        "updatedAt": datetime.utcnow().isoformat(),
+    }
+    resp = requests.post(_base("/api/personal-planning/cards"), json=payload, timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+

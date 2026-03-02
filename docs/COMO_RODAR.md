@@ -74,7 +74,7 @@ cd "bot - secretaria da minha vida"
 python -m assistant.bot
 ```
 
-O bot passa a responder no Telegram. Ele salva ideias no Obsidian, sugere novas áreas/interesses e pode criar tarefas no planejamento empresarial.
+O bot passa a responder no Telegram. Ele salva ideias no Obsidian, sugere novas áreas/interesses e pode criar tarefas no planejamento empresarial e no planejamento pessoal.
 
 ---
 

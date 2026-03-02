@@ -242,6 +242,12 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
             priority = dados.get("priority", "medium")
             obsidian_service.criar_card_planejamento(title=title, status=status, priority=priority)
             resposta = f"{resposta}\n\n✅ Tarefa criada no planejamento empresarial."
+        elif acao == "criar_tarefa_planejamento_pessoal" and dados:
+            title = dados.get("titulo") or dados.get("title") or "Tarefa"
+            status = dados.get("status", "todo")
+            priority = dados.get("priority", "medium")
+            obsidian_service.criar_card_planejamento_pessoal(title=title, status=status, priority=priority)
+            resposta = f"{resposta}\n\n✅ Tarefa criada no planejamento pessoal."
         else:
             # default: just reply
             pass
@@ -277,9 +283,6 @@ async def handler_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_T
             return
 
         await _processar_texto_e_responder(texto, update, context)
-    except Exception as e:
-        logger.exception("Erro ao processar mensagem de texto: %s", e)
-        await update.message.reply_text(RESPOSTA_ERRO)
     except Exception as e:
         logger.exception("Erro ao processar mensagem de texto: %s", e)
         await update.message.reply_text(RESPOSTA_ERRO)
