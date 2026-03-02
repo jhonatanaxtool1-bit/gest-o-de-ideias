@@ -10,6 +10,7 @@ function rowToCard(row) {
   return {
     id: row.id,
     title: row.title,
+    description: typeof row.description === 'string' ? row.description : '',
     status: row.status,
     priority: row.priority,
     isFinalized: Boolean(row.isFinalized),
@@ -37,9 +38,11 @@ router.post('/personal-planning/cards', (req, res) => {
   }
 
   const now = new Date().toISOString()
+  const description = typeof payload.description === 'string' ? payload.description : ''
   const card = {
     id: payload.id || require('crypto').randomUUID(),
     title: payload.title.trim(),
+    description,
     status: payload.status,
     priority: payload.priority,
     isFinalized: payload.isFinalized ? 1 : 0,
@@ -50,7 +53,7 @@ router.post('/personal-planning/cards', (req, res) => {
 
   db
     .prepare(
-      'INSERT INTO personal_planning_cards (id,title,status,priority,isFinalized,completedAt,createdAt,updatedAt) VALUES (@id,@title,@status,@priority,@isFinalized,@completedAt,@createdAt,@updatedAt)'
+      'INSERT INTO personal_planning_cards (id,title,description,status,priority,isFinalized,completedAt,createdAt,updatedAt) VALUES (@id,@title,@description,@status,@priority,@isFinalized,@completedAt,@createdAt,@updatedAt)'
     )
     .run(card)
 
@@ -71,9 +74,11 @@ router.patch('/personal-planning/cards/:id', (req, res) => {
     return res.status(400).json({ message: 'Invalid payload' })
   }
 
+  const description = typeof payload.description === 'string' ? payload.description : existing.description ?? ''
   const updated = {
     id,
     title: typeof payload.title === 'string' ? payload.title.trim() : existing.title,
+    description,
     status: nextStatus,
     priority: nextPriority,
     isFinalized:
@@ -84,7 +89,7 @@ router.patch('/personal-planning/cards/:id', (req, res) => {
 
   db
     .prepare(
-      'UPDATE personal_planning_cards SET title=@title, status=@status, priority=@priority, isFinalized=@isFinalized, completedAt=@completedAt, updatedAt=@updatedAt WHERE id=@id'
+      'UPDATE personal_planning_cards SET title=@title, description=@description, status=@status, priority=@priority, isFinalized=@isFinalized, completedAt=@completedAt, updatedAt=@updatedAt WHERE id=@id'
     )
     .run(updated)
 

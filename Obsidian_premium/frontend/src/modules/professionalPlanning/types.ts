@@ -5,6 +5,7 @@ export type PlanningPriority = 'low' | 'medium' | 'high'
 export interface PlanningCard {
   id: string
   title: string
+  description?: string
   status: PlanningStatus
   priority: PlanningPriority
   isFinalized?: boolean
@@ -15,12 +16,14 @@ export interface PlanningCard {
 
 export interface PlanningCardCreateInput {
   title: string
+  description?: string
   status: PlanningStatus
   priority: PlanningPriority
 }
 
 export interface PlanningCardUpdateInput {
   title?: string
+  description?: string
   status?: PlanningStatus
   priority?: PlanningPriority
   isFinalized?: boolean

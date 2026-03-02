@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { PlanningCard, PlanningPriority, PlanningStatus } from '@/modules/professionalPlanning/types'
+import { CardDescriptionEditor } from './CardDescriptionEditor'
 
 type CardModalMode = 'create' | 'edit'
 
 interface CardModalSubmitPayload {
   title: string
+  description: string
   status: PlanningStatus
   priority: PlanningPriority
 }
@@ -42,6 +44,7 @@ export function CardModal({
   onSubmit,
 }: CardModalProps) {
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [status, setStatus] = useState<PlanningStatus>(defaultStatus)
   const [priority, setPriority] = useState<PlanningPriority | ''>('')
   const [error, setError] = useState<string | null>(null)
@@ -51,6 +54,7 @@ export function CardModal({
   useEffect(() => {
     if (!isOpen) return
     setTitle(initialCard?.title ?? '')
+    setDescription(initialCard?.description ?? '')
     setStatus(initialCard?.status ?? defaultStatus)
     setPriority(initialCard?.priority ?? '')
     setError(null)
@@ -72,6 +76,7 @@ export function CardModal({
     setError(null)
     await onSubmit({
       title: cleanTitle,
+      description: description ?? '',
       status,
       priority,
     })
@@ -99,6 +104,15 @@ export function CardModal({
               onChange={(event) => setTitle(event.target.value)}
               className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none ring-0 transition-colors focus:border-zinc-500"
               placeholder="Ex: Preparar reunião com cliente"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-400">Descrição</label>
+            <CardDescriptionEditor
+              content={description}
+              onChange={setDescription}
+              placeholder="Adicione uma descrição..."
             />
           </div>
 

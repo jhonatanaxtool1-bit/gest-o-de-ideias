@@ -32,6 +32,7 @@ function normalizeCards(value: unknown): PlanningCard[] {
     .map((item) => ({
       id: typeof item.id === 'string' ? item.id : genId(),
       title: typeof item.title === 'string' ? item.title : '',
+      description: typeof item.description === 'string' ? item.description : '',
       status:
         item.status === 'todo' || item.status === 'doing' || item.status === 'done' || item.status === 'nostatus'
           ? item.status
@@ -102,6 +103,7 @@ export async function createPlanningCard(input: PlanningCardCreateInput): Promis
     method: 'POST',
     body: JSON.stringify({
       ...input,
+      description: typeof input.description === 'string' ? input.description : '',
       id: genId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

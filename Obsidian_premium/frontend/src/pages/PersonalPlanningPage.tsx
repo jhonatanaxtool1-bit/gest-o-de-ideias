@@ -149,6 +149,7 @@ export function PersonalPlanningPage() {
 
   async function handleModalSubmit(payload: {
     title: string
+    description: string
     status: PlanningStatus
     priority: PlanningPriority
   }) {

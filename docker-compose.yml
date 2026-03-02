@@ -4,7 +4,7 @@ services:
       context: ./Obsidian_premium/backend
       dockerfile: Dockerfile
     ports:
-      - "4000:4000"
+      - "4001:4000"
     environment:
       - NODE_ENV=production
       - PORT=4000
