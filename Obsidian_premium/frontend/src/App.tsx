@@ -12,6 +12,7 @@ import { IdeasVisualizationPage } from '@/pages/IdeasVisualizationPage'
 import { ListasPage } from '@/pages/ListasPage'
 import { ListNewPage } from '@/pages/ListNewPage'
 import { ListEditPage } from '@/pages/ListEditPage'
+import { LembretesPage } from '@/pages/LembretesPage'
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="tarefas-diarias" element={<DailyTasksPage />} />
           <Route path="planejamento-profissional" element={<ProfessionalPlanningPage />} />
           <Route path="planejamento-pessoal" element={<PersonalPlanningPage />} />
+          <Route path="lembretes" element={<LembretesPage />} />
           <Route path="ideia/:id" element={<IdeaEditorPage />} />
           <Route path="doc/:id" element={<DocumentPage />} />
           <Route path="doc/new" element={<Navigate to="/ideia/new" replace />} />

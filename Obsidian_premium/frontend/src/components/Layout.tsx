@@ -9,6 +9,7 @@ export function Layout() {
   const isIdeasVisualization = location.pathname === '/visualizacao-ideias'
   const isIdeiaNew = location.pathname === '/ideia/new'
   const isListas = location.pathname === '/listas' || location.pathname.startsWith('/lista/')
+  const isLembretes = location.pathname === '/lembretes'
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -53,6 +54,14 @@ export function Layout() {
             }`}
           >
             Tarefas Diarias
+          </Link>
+          <Link
+            to="/lembretes"
+            className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+              isLembretes ? 'bg-accent/15 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+            }`}
+          >
+            Lembretes
           </Link>
           <Link
             to="/planejamento-profissional"

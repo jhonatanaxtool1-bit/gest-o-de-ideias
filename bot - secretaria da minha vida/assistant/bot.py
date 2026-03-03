@@ -293,6 +293,43 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                     resposta = f"{resposta}\n\n✅ Ideia atualizada."
                 else:
                     resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
+        elif acao == "criar_lembrete" and dados:
+            titulo = (dados.get("titulo") or "").strip()
+            if not titulo:
+                resposta = f"{resposta}\n\n⚠️ Informe o título do lembrete."
+            else:
+                first_due = (dados.get("firstDueAt") or "").strip()
+                if not first_due:
+                    first_due = __import__("datetime").datetime.utcnow().isoformat() + "Z"
+                else:
+                    try:
+                        dt = __import__("datetime").datetime.fromisoformat(first_due.replace("Z", "+00:00"))
+                        first_due = dt.strftime("%Y-%m-%dT%H:%M:%S.000Z") if first_due.endswith("Z") or "+" in first_due else dt.isoformat() + "Z"
+                    except (ValueError, TypeError):
+                        first_due = __import__("datetime").datetime.utcnow().isoformat() + "Z"
+                recurrence = (dados.get("recurrence") or "once").strip()
+                if recurrence not in ("once", "daily", "every_2_days", "weekly"):
+                    recurrence = "once"
+                body = (dados.get("body") or "").strip()
+                obsidian_service.criar_lembrete(title=titulo, first_due_at=first_due, body=body, recurrence=recurrence)
+                rec_label = {"once": "uma vez", "daily": "diário", "every_2_days": "a cada 2 dias", "weekly": "semanal"}.get(recurrence, "uma vez")
+                resposta = f"{resposta}\n\n✅ Lembrete criado ({rec_label})."
+        elif acao == "lançar_lembretes":
+            try:
+                vencidos = obsidian_service.listar_lembretes_vencidos()
+                if not vencidos:
+                    resposta = f"{resposta}\n\nNenhum lembrete vencido no momento."
+                else:
+                    for r in vencidos:
+                        msg = f"🔔 {r.get('title', 'Lembrete')}"
+                        if r.get("body"):
+                            msg += f"\n{r['body']}"
+                        await update.message.reply_text(msg)
+                        obsidian_service.marcar_lembrete_disparado(r["id"])
+                    resposta = f"{resposta}\n\n✅ {len(vencidos)} lembrete(s) enviado(s)."
+            except requests.RequestException as e:
+                logger.warning("Erro ao buscar/enviar lembretes: %s", e)
+                resposta = f"{resposta}\n\n⚠️ Não foi possível verificar lembretes (servidor)."
         elif acao == "atualizar_lista" and dados:
             list_id = (dados.get("id") or "").strip()
             if not list_id:
@@ -433,6 +470,25 @@ async def handler_mensagem_voz(update: Update, context: ContextTypes.DEFAULT_TYP
                     pass
 
 
+async def _job_lembretes_vencidos(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Job periódico: envia lembretes vencidos para TELEGRAM_CHAT_ID."""
+    chat_id = getattr(config, "TELEGRAM_CHAT_ID", "") or ""
+    if not chat_id:
+        return
+    try:
+        vencidos = obsidian_service.listar_lembretes_vencidos()
+        for r in vencidos:
+            msg = f"🔔 {r.get('title', 'Lembrete')}"
+            if r.get("body"):
+                msg += f"\n{r['body']}"
+            await context.bot.send_message(chat_id=chat_id, text=msg)
+            obsidian_service.marcar_lembrete_disparado(r["id"])
+    except requests.RequestException as e:
+        logger.debug("Job lembretes: %s", e)
+    except Exception as e:
+        logger.warning("Job lembretes: %s", e)
+
+
 def main() -> None:
     """Valida config, monta a aplicação e inicia o polling."""
     config.validar_config()
@@ -447,6 +503,9 @@ def main() -> None:
     app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handler_mensagem_texto))
     app.add_handler(MessageHandler(filters.VOICE, handler_mensagem_voz))
+    if getattr(config, "TELEGRAM_CHAT_ID", "") and config.TELEGRAM_CHAT_ID.strip():
+        app.job_queue.run_repeating(_job_lembretes_vencidos, interval=60, first=30)
+        logger.info("Job de lembretes ativo (TELEGRAM_CHAT_ID definido).")
     logger.info("Bot iniciando...")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 

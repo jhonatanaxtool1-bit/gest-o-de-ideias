@@ -10,6 +10,7 @@ const organizationRouter = require('./routes/organization')
 const dailyTasksRouter = require('./routes/dailyTasks')
 const professionalPlanningRouter = require('./routes/professionalPlanning')
 const personalPlanningRouter = require('./routes/personalPlanning')
+const remindersRouter = require('./routes/reminders')
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -27,6 +28,7 @@ app.use('/api', organizationRouter) // organization routes: /api/interests and /
 app.use('/api', dailyTasksRouter)
 app.use('/api', professionalPlanningRouter)
 app.use('/api', personalPlanningRouter)
+app.use('/api', remindersRouter)
 
 app.get('/', (req, res) => {
   res.json({ status: 'ok' })

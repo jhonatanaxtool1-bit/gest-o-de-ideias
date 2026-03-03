@@ -101,6 +101,24 @@ function createDb(dbPath) {
 
   db.prepare('CREATE INDEX IF NOT EXISTS idx_list_items_listId ON list_items(listId)').run()
 
+  // reminders: title, body (optional), firstDueAt (ISO), recurrence, lastTriggeredAt (for recurring)
+  db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS reminders (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL DEFAULT '',
+        firstDueAt TEXT NOT NULL,
+        recurrence TEXT NOT NULL DEFAULT 'once',
+        lastTriggeredAt TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      );`
+    )
+    .run()
+
+  db.prepare('CREATE INDEX IF NOT EXISTS idx_reminders_firstDueAt ON reminders(firstDueAt)').run()
+
   runMigrations(db)
 
   // seed default organization if empty

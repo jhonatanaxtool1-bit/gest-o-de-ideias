@@ -177,3 +177,50 @@ def criar_card_planejamento_pessoal(title: str, status: str = "todo", priority: 
     resp.raise_for_status()
     return resp.json()
 
+
+# --- Lembretes ---
+
+def listar_lembretes() -> List[dict]:
+    resp = requests.get(_base("/api/reminders"), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def listar_lembretes_vencidos() -> List[dict]:
+    """Retorna lembretes que estão vencidos (devem ser disparados agora)."""
+    resp = requests.get(_base("/api/reminders/due"), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def criar_lembrete(
+    title: str,
+    first_due_at: str,
+    body: str = "",
+    recurrence: str = "once",
+) -> dict:
+    payload = {
+        "id": str(uuid.uuid4()),
+        "title": title.strip(),
+        "body": (body or "").strip(),
+        "firstDueAt": first_due_at,
+        "recurrence": recurrence if recurrence in ("once", "daily", "every_2_days", "weekly") else "once",
+        "createdAt": datetime.utcnow().isoformat(),
+        "updatedAt": datetime.utcnow().isoformat(),
+    }
+    resp = requests.post(_base("/api/reminders"), json=payload, timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def marcar_lembrete_disparado(reminder_id: str) -> dict:
+    """Atualiza lastTriggeredAt para que o lembrete não seja reenviado até a próxima recorrência."""
+    now = datetime.utcnow().isoformat()
+    resp = requests.patch(
+        _base(f"/api/reminders/{reminder_id}"),
+        json={"lastTriggeredAt": now},
+        timeout=OPENROUTER_TIMEOUT,
+    )
+    resp.raise_for_status()
+    return resp.json()
+

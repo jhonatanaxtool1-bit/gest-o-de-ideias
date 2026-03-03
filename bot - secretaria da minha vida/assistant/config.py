@@ -54,3 +54,7 @@ OPENROUTER_BASE_URL = os.getenv(
 OPENROUTER_TIMEOUT = int(os.getenv("OPENROUTER_TIMEOUT", "60"))
 
 MEMORIA_PATH = _obter_caminho_memoria()
+
+# Opcional: chat_id do Telegram para envio automático de lembretes (job periódico).
+# Se não definido, lembretes só são enviados quando o usuário pedir "me avise dos lembretes".
+TELEGRAM_CHAT_ID = (os.getenv("TELEGRAM_CHAT_ID") or "").strip()
