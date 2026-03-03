@@ -33,5 +33,9 @@ jobs:
               echo "Criado $BOT_ENV a partir de .env.example. Configure os tokens no servidor e reinicie os containers."
             fi
             docker compose down
+            sleep 5
+            # Libera porta 4001 caso algum processo/container órfão ainda a esteja usando
+            fuser -k 4001/tcp 2>/dev/null || true
+            sleep 2
             docker compose build --pull
             docker compose up -d
