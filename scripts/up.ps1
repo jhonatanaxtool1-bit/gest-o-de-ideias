@@ -37,6 +37,9 @@ try {
 Write-Host "Subindo containers..."
 Push-Location $root
 try {
+  Write-Host "Parando e removendo containers antigos (libera portas)..."
+  docker compose down
+
   if ($NoCache) {
     docker compose build --no-cache
   } else {

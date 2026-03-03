@@ -33,6 +33,9 @@ echo "Buildando frontend (npm ci + npm run build)..."
 echo "Subindo containers..."
 cd "$ROOT_DIR"
 
+echo "Parando e removendo containers antigos (libera portas)..."
+docker compose down
+
 NO_CACHE="${NO_CACHE:-0}"
 NO_DETACH="${NO_DETACH:-0}"
 
