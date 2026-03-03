@@ -72,7 +72,7 @@ Exemplo quando usuário pede \"quais meus lembretes pendentes\", \"me avise dos 
 PROMPT_REFINO_IDEIA = """Você vai refinar um texto de ideia ANTES de ser salvo.
 
 Regras:
-- Corrija ortografia e pontuação (pt-BR), sem mudar o significado.
+- Corrija erros gramaticais, de concordância, ortografia e pontuação (pt-BR), sem mudar o significado.
 - Gere uma descrição curta (1–2 frases) em "descricao" com o essencial.
 - Não invente fatos nem adicione informações novas.
 - Mantenha termos técnicos, nomes próprios e siglas.
@@ -80,9 +80,25 @@ Regras:
 Retorne SOMENTE um JSON válido no formato:
 {"titulo": "...", "descricao": "...", "corpo": "..."}
 
-- titulo: título curto e claro (até 80 caracteres). Se o título original já estiver bom, mantenha.
+- titulo: título curto e claro (até 80 caracteres). Se o título original já estiver bom, mantenha; senão corrija.
 - descricao: 1–2 frases.
 - corpo: versão corrigida do texto (pode ser igual ao original, apenas corrigido).
+"""
+
+# Correção de título e resumo antes de inserir lista, tarefa ou lembrete (só gramática/concordância).
+PROMPT_CORRIGIR_TITULO_RESUMO = """Você vai corrigir texto ANTES de ser salvo como título ou resumo (lista, tarefa, lembrete).
+
+Regras:
+- Corrija APENAS erros gramaticais, de concordância, ortografia e pontuação (pt-BR).
+- Não mude o significado nem adicione informações.
+- Mantenha termos técnicos, nomes próprios e siglas.
+- Se o texto já estiver correto, devolva igual.
+
+Retorne SOMENTE um JSON válido:
+{"titulo": "...", "resumo": "..."}
+
+- titulo: versão corrigida do título (obrigatório).
+- resumo: versão corrigida do resumo/descrição; se não houver resumo, use string vazia "".
 """
 
 # Fallback quando o parse do JSON falha
@@ -338,6 +354,65 @@ def refinar_ideia(titulo: str, corpo: str) -> dict | None:
         out_corpo = corpo
 
     return {"titulo": out_titulo, "descricao": out_descricao, "corpo": out_corpo}
+
+
+def corrigir_titulo_resumo(titulo: str, resumo: str | None = None) -> dict | None:
+    """
+    Corrige título e opcionalmente resumo (gramática, concordância, ortografia) antes de inserir
+    lista, tarefa ou lembrete. Retorna {"titulo": str, "resumo": str} ou None se falhar.
+    """
+    titulo = (titulo or "").strip()
+    resumo = (resumo or "").strip()
+    if not titulo and not resumo:
+        return None
+
+    user = f"TÍTULO:\n{titulo or '(vazio)'}\n\n"
+    if resumo:
+        user += f"RESUMO/DESCRIÇÃO:\n{resumo}"
+    else:
+        user += "RESUMO/DESCRIÇÃO: (vazio)"
+
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": [
+            {"role": "system", "content": PROMPT_CORRIGIR_TITULO_RESUMO},
+            {"role": "user", "content": user},
+        ],
+    }
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        resp = requests.post(
+            OPENROUTER_BASE_URL,
+            json=payload,
+            headers=headers,
+            timeout=OPENROUTER_TIMEOUT,
+        )
+        resp.raise_for_status()
+        body = resp.json()
+    except requests.RequestException as e:
+        logger.warning("Falha ao corrigir título/resumo (request): %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Falha ao corrigir título/resumo (json): %s", e)
+        return None
+
+    choices = body.get("choices") or []
+    if not choices:
+        return None
+
+    content = (choices[0].get("message") or {}).get("content") or ""
+    parsed = _extrair_json(content)
+    if not isinstance(parsed, dict):
+        return None
+
+    out_titulo = str(parsed.get("titulo") or titulo or "").strip() or titulo
+    out_resumo = str(parsed.get("resumo") or resumo or "").strip() if resumo else ""
+
+    return {"titulo": out_titulo, "resumo": out_resumo}
 
 
 def perguntar_llm(

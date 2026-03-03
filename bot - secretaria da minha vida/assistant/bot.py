@@ -31,6 +31,15 @@ logger = logging.getLogger(__name__)
 
 RESPOSTA_ERRO = "Não foi possível processar agora. Tente mais tarde."
 
+
+def _link(path: str) -> str:
+    """Retorna URL completa do app para o path (ex.: ideia/123, listas). Se APP_BASE_URL não estiver definido, retorna vazio."""
+    base = getattr(config, "APP_BASE_URL", "") or ""
+    if not base:
+        return ""
+    return f"{base}/{path.lstrip('/')}"
+
+
 # Palavras que indicam pedido de salvar/guardar ideia (para buscar interesses e áreas)
 _PALAVRAS_SALVAR_IDEIA = ("guardar", "salvar", "anotar", "ideia", "nota", "registrar", "gravar")
 
@@ -39,6 +48,28 @@ def _parece_pedido_salvar_ideia(texto: str) -> bool:
     """True se a mensagem parece pedir para salvar/guardar uma ideia."""
     t = texto.lower().strip()
     return any(p in t for p in _PALAVRAS_SALVAR_IDEIA)
+
+
+def _parece_pergunta_funcao(texto: str) -> bool:
+    """True se a mensagem parece perguntar sobre as funções/capacidades do bot."""
+    t = texto.lower().strip()
+    return any(
+        k in t
+        for k in (
+            "função",
+            "funções",
+            "funcoes",
+            "o que você faz",
+            "o que voce faz",
+            "o que faz",
+            "quais são suas funções",
+            "quais sao suas funcoes",
+            "quais suas funções",
+            "capacidades",
+            "o que você pode",
+            "o que voce pode",
+        )
+    )
 
 
 def _parece_pergunta_interesses_areas(texto: str) -> bool:
@@ -227,7 +258,7 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                         pass
                 if par:
                     interest_final, area_final = par
-                    obsidian_service.criar_documento(
+                    created = obsidian_service.criar_documento(
                         title=titulo,
                         content=conteudo_final,
                         interest=interest_final,
@@ -243,6 +274,9 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                         f"• Título: {titulo}\n"
                         f"• Resumo: {resumo or '(sem resumo)'}"
                     )
+                    url = _link(f"ideia/{created.get('id')}") if created and created.get("id") else ""
+                    if url:
+                        resposta += f"\n\n🔗 {url}"
                 else:
                     resposta = (
                         "⚠️ Não foi possível salvar a ideia. Só é possível salvar em um interesse e uma área já cadastrados. "
@@ -255,23 +289,41 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                 )
         elif acao == "criar_tarefa_planejamento" and dados:
             title = dados.get("titulo") or dados.get("title") or "Tarefa"
+            corrigido = llm.corrigir_titulo_resumo(title)
+            if corrigido:
+                title = corrigido["titulo"] or title
             status = dados.get("status", "todo")
             priority = dados.get("priority", "medium")
             obsidian_service.criar_card_planejamento(title=title, status=status, priority=priority)
             resposta = f"{resposta}\n\n✅ Tarefa criada no planejamento empresarial."
+            url = _link("planejamento-profissional")
+            if url:
+                resposta += f"\n\n🔗 {url}"
         elif acao == "criar_tarefa_planejamento_pessoal" and dados:
             title = dados.get("titulo") or dados.get("title") or "Tarefa"
+            corrigido = llm.corrigir_titulo_resumo(title)
+            if corrigido:
+                title = corrigido["titulo"] or title
             status = dados.get("status", "todo")
             priority = dados.get("priority", "medium")
             obsidian_service.criar_card_planejamento_pessoal(title=title, status=status, priority=priority)
             resposta = f"{resposta}\n\n✅ Tarefa criada no planejamento pessoal."
+            url = _link("planejamento-pessoal")
+            if url:
+                resposta += f"\n\n🔗 {url}"
         elif acao == "criar_lista" and dados:
             title = (dados.get("titulo") or dados.get("title") or "").strip() or "Sem título"
+            corrigido = llm.corrigir_titulo_resumo(title)
+            if corrigido:
+                title = corrigido["titulo"] or title
             list_type = (dados.get("listType") or dados.get("list_type") or "geral").strip() or "geral"
             items = dados.get("itens") or dados.get("items") or []
             lst = obsidian_service.criar_lista(title=title, list_type=list_type, items=items)
             n = len(lst.get("items", []))
             resposta = f"{resposta}\n\n✅ Lista criada: {title} ({list_type}). {n} item(ns) adicionado(s)."
+            url = _link(f"lista/{lst.get('id')}") if lst.get("id") else ""
+            if url:
+                resposta += f"\n\n🔗 {url}"
         elif acao == "atualizar_ideia" and dados:
             doc_id = (dados.get("id") or "").strip()
             if not doc_id:
@@ -298,6 +350,11 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
             if not titulo:
                 resposta = f"{resposta}\n\n⚠️ Informe o título do lembrete."
             else:
+                body = (dados.get("body") or "").strip()
+                corrigido = llm.corrigir_titulo_resumo(titulo, body)
+                if corrigido:
+                    titulo = corrigido["titulo"] or titulo
+                    body = corrigido.get("resumo") if corrigido.get("resumo") is not None else body
                 first_due = (dados.get("firstDueAt") or "").strip()
                 if not first_due:
                     first_due = __import__("datetime").datetime.utcnow().isoformat() + "Z"
@@ -310,10 +367,12 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                 recurrence = (dados.get("recurrence") or "once").strip()
                 if recurrence not in ("once", "daily", "every_2_days", "weekly"):
                     recurrence = "once"
-                body = (dados.get("body") or "").strip()
                 obsidian_service.criar_lembrete(title=titulo, first_due_at=first_due, body=body, recurrence=recurrence)
                 rec_label = {"once": "uma vez", "daily": "diário", "every_2_days": "a cada 2 dias", "weekly": "semanal"}.get(recurrence, "uma vez")
                 resposta = f"{resposta}\n\n✅ Lembrete criado ({rec_label})."
+                url = _link("lembretes")
+                if url:
+                    resposta += f"\n\n🔗 {url}"
         elif acao == "lançar_lembretes":
             try:
                 vencidos = obsidian_service.listar_lembretes_vencidos()
@@ -388,6 +447,10 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
     except requests.RequestException as e:
         logger.exception("Erro ao comunicar com Obsidian backend: %s", e)
         resposta = f"{resposta}\n\n⚠️ Não foi possível gravar no Obsidian (verifique servidor)."
+    if acao == "responder" and _parece_pergunta_funcao(texto):
+        base = getattr(config, "APP_BASE_URL", "") or ""
+        if base:
+            resposta += f"\n\n🔗 Acesse o app: {base}"
     await update.message.reply_text(resposta)
 
 

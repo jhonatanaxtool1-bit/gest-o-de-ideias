@@ -58,3 +58,7 @@ MEMORIA_PATH = _obter_caminho_memoria()
 # Opcional: chat_id do Telegram para envio automático de lembretes (job periódico).
 # Se não definido, lembretes só são enviados quando o usuário pedir "me avise dos lembretes".
 TELEGRAM_CHAT_ID = (os.getenv("TELEGRAM_CHAT_ID") or "").strip()
+
+# URL base do app (frontend) para o bot enviar links ao criar ideia/lista/tarefa/lembrete ou ao explicar suas funções.
+# Ex.: https://meu-app.vercel.app ou http://localhost:5173
+APP_BASE_URL = (os.getenv("APP_BASE_URL") or "").rstrip("/")
