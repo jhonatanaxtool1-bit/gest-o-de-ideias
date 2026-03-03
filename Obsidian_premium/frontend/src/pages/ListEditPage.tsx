@@ -6,7 +6,7 @@ import type { List, ListItem } from '@/modules/lists/types'
 export function ListEditPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { lists, isLoaded, getById, update, toggleItemDone, addItem, updateItemLabel, removeItem } = useLists()
+  const { lists, isLoaded, getById, toggleItemDone, addItem, updateItemLabel, removeItem } = useLists()
   const [list, setList] = useState<List | null>(null)
   const [newItemLabel, setNewItemLabel] = useState('')
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
@@ -31,17 +31,6 @@ export function ListEditPage() {
       setEditingLabel('')
     }
   }, [editingItemId, list])
-
-  const handleSaveTitleAndType = async () => {
-    if (!list) return
-    setError(null)
-    try {
-      const updated = await update(list.id, { title: list.title, listType: list.listType })
-      if (updated) setList(updated)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar.')
-    }
-  }
 
   const handleToggle = async (item: ListItem) => {
     if (!list) return
