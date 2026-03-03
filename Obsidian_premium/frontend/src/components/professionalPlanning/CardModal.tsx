@@ -84,7 +84,7 @@ export function CardModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-2xl">
+      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-zinc-100">{titleText}</h2>
           <button
@@ -96,7 +96,7 @@ export function CardModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col space-y-4 overflow-y-auto">
           <div>
             <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-400">Título</label>
             <input
@@ -107,7 +107,7 @@ export function CardModal({
             />
           </div>
 
-          <div>
+          <div className="min-h-0 flex-1 flex flex-col">
             <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-400">Descrição</label>
             <CardDescriptionEditor
               content={description}

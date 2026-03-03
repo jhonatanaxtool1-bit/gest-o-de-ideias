@@ -185,8 +185,8 @@ export function CardDescriptionEditor({
       <EditorContent editor={editor} />
       <style>{`
         .card-description-editor {
-          min-height: 120px;
-          max-height: 400px;
+          min-height: 320px;
+          max-height: 60vh;
           overflow-y: auto;
           padding: 12px;
           font-size: 0.875rem;

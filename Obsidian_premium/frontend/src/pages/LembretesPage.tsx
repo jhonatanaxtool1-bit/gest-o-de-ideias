@@ -19,25 +19,35 @@ function formatDue(iso: string): string {
 
 const RECURRENCE_OPTIONS: ReminderRecurrence[] = ['once', 'daily', 'every_2_days', 'weekly']
 
-export function LembretesPage() {
-  const [reminders, setReminders] = useState<Reminder[]>([])
+function defaultDatetimeLocal(): string {
+  const now = new Date()
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+  return now.toISOString().slice(0, 16)
+}
+
+interface NewReminderModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onCreated: (reminder: Reminder) => void
+}
+
+function NewReminderModal({ isOpen, onClose, onCreated }: NewReminderModalProps) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [firstDueAt, setFirstDueAt] = useState(() => {
-    const now = new Date()
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
-    return now.toISOString().slice(0, 16)
-  })
+  const [firstDueAt, setFirstDueAt] = useState(defaultDatetimeLocal)
   const [recurrence, setRecurrence] = useState<ReminderRecurrence>('once')
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    fetchRemindersApi()
-      .then(setReminders)
-      .catch(() => setReminders([]))
-      .finally(() => setLoading(false))
-  }, [])
+    if (isOpen) {
+      setTitle('')
+      setBody('')
+      setFirstDueAt(defaultDatetimeLocal())
+      setRecurrence('once')
+      setError(null)
+    }
+  }, [isOpen])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -52,6 +62,7 @@ export function LembretesPage() {
       setError('Data/hora inválida.')
       return
     }
+    setIsSubmitting(true)
     try {
       const input: ReminderCreateInput = {
         title: t,
@@ -60,16 +71,134 @@ export function LembretesPage() {
         recurrence,
       }
       const created = await createReminderApi(input)
-      setReminders((prev) => [created, ...prev])
-      setTitle('')
-      setBody('')
-      const next = new Date()
-      next.setMinutes(next.getMinutes() - next.getTimezoneOffset())
-      setFirstDueAt(next.toISOString().slice(0, 16))
-      setRecurrence('once')
+      onCreated(created)
+      onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar lembrete.')
+    } finally {
+      setIsSubmitting(false)
     }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-zinc-100">Novo lembrete</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md px-2 py-1 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+          >
+            Fechar
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {error && (
+            <div className="rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+          <div>
+            <label htmlFor="reminder-title" className="mb-1 block text-xs font-medium text-zinc-400">
+              Título *
+            </label>
+            <input
+              id="reminder-title"
+              type="text"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                if (error) setError(null)
+              }}
+              placeholder="Ex.: Ligar para o médico"
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20"
+            />
+          </div>
+          <div>
+            <label htmlFor="reminder-body" className="mb-1 block text-xs font-medium text-zinc-400">
+              Descrição (opcional)
+            </label>
+            <textarea
+              id="reminder-body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Detalhes do lembrete"
+              rows={2}
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20"
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="reminder-datetime" className="mb-1 block text-xs font-medium text-zinc-400">
+                Data e hora
+              </label>
+              <input
+                id="reminder-datetime"
+                type="datetime-local"
+                value={firstDueAt}
+                onChange={(e) => setFirstDueAt(e.target.value)}
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="reminder-recurrence" className="mb-1 block text-xs font-medium text-zinc-400">
+                Recorrência
+              </label>
+              <select
+                id="reminder-recurrence"
+                value={recurrence}
+                onChange={(e) => setRecurrence(e.target.value as ReminderRecurrence)}
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20"
+              >
+                {RECURRENCE_OPTIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {RECURRENCE_LABELS[r]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800"
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-bright disabled:opacity-50"
+            >
+              {isSubmitting ? 'Criando…' : 'Criar lembrete'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export function LembretesPage() {
+  const [reminders, setReminders] = useState<Reminder[]>([])
+  const [loading, setLoading] = useState(true)
+  const [listError, setListError] = useState<string | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+
+  useEffect(() => {
+    fetchRemindersApi()
+      .then(setReminders)
+      .catch(() => setReminders([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  function handleCreated(reminder: Reminder) {
+    setReminders((prev) => [reminder, ...prev])
   }
 
   async function handleDelete(id: string) {
@@ -78,7 +207,7 @@ export function LembretesPage() {
       await deleteReminderApi(id)
       setReminders((prev) => prev.filter((r) => r.id !== id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao excluir.')
+      setListError(err instanceof Error ? err.message : 'Erro ao excluir.')
     }
   }
 
@@ -93,81 +222,24 @@ export function LembretesPage() {
           </p>
         </header>
 
-        <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/70 p-4">
-          {error && (
-            <div className="mb-3 rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-400">
-              {error}
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-              <label htmlFor="reminder-title" className="mb-1 block text-xs font-medium text-zinc-400">
-                Título *
-              </label>
-              <input
-                id="reminder-title"
-                type="text"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value)
-                  if (error) setError(null)
-                }}
-                placeholder="Ex.: Ligar para o médico"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
-            <div>
-              <label htmlFor="reminder-body" className="mb-1 block text-xs font-medium text-zinc-400">
-                Descrição (opcional)
-              </label>
-              <textarea
-                id="reminder-body"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Detalhes do lembrete"
-                rows={2}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="reminder-datetime" className="mb-1 block text-xs font-medium text-zinc-400">
-                  Data e hora
-                </label>
-                <input
-                  id="reminder-datetime"
-                  type="datetime-local"
-                  value={firstDueAt}
-                  onChange={(e) => setFirstDueAt(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20"
-                />
-              </div>
-              <div>
-                <label htmlFor="reminder-recurrence" className="mb-1 block text-xs font-medium text-zinc-400">
-                  Recorrência
-                </label>
-                <select
-                  id="reminder-recurrence"
-                  value={recurrence}
-                  onChange={(e) => setRecurrence(e.target.value as ReminderRecurrence)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20"
-                >
-                  {RECURRENCE_OPTIONS.map((r) => (
-                    <option key={r} value={r}>
-                      {RECURRENCE_LABELS[r]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="h-11 rounded-lg bg-accent px-4 text-sm font-medium text-white transition-colors hover:bg-accent-bright"
-            >
-              Criar lembrete
-            </button>
-          </form>
-        </section>
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 font-medium text-white shadow-lg shadow-accent/20 transition-colors hover:bg-accent-bright"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Novo lembrete
+          </button>
+        </div>
+
+        {listError && (
+          <div className="mb-3 rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+            {listError}
+          </div>
+        )}
 
         <section className="mt-6">
           <h2 className="mb-3 text-sm font-medium text-zinc-400">Seus lembretes</h2>
@@ -177,7 +249,14 @@ export function LembretesPage() {
             </div>
           ) : reminders.length === 0 ? (
             <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 px-4 py-8 text-center">
-              <p className="text-sm text-zinc-400">Nenhum lembrete. Crie um acima.</p>
+              <p className="text-sm text-zinc-400">Nenhum lembrete.</p>
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="mt-3 rounded-lg bg-accent/20 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/30"
+              >
+                Criar primeiro lembrete
+              </button>
             </div>
           ) : (
             <ul className="space-y-2">
@@ -205,6 +284,12 @@ export function LembretesPage() {
             </ul>
           )}
         </section>
+
+        <NewReminderModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onCreated={handleCreated}
+        />
       </div>
     </div>
   )
