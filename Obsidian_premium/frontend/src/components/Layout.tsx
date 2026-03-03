@@ -7,6 +7,8 @@ export function Layout() {
   const isPersonalPlanning = location.pathname === '/planejamento-pessoal'
   const isDailyTasks = location.pathname === '/tarefas-diarias'
   const isIdeasVisualization = location.pathname === '/visualizacao-ideias'
+  const isIdeiaNew = location.pathname === '/ideia/new'
+  const isListas = location.pathname === '/listas' || location.pathname.startsWith('/lista/')
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -17,13 +19,32 @@ export function Layout() {
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
+          <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-zinc-500">
+            Segundo Cérebro
+          </p>
           <Link
             to="/visualizacao-ideias"
             className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
               isIdeasVisualization ? 'bg-accent/15 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
             }`}
           >
-            Segundo Cérebro
+            Visualização
+          </Link>
+          <Link
+            to="/ideia/new"
+            className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+              isIdeiaNew ? 'bg-accent/15 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+            }`}
+          >
+            Criar ideia
+          </Link>
+          <Link
+            to="/listas"
+            className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+              isListas ? 'bg-accent/15 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+            }`}
+          >
+            Criar lista
           </Link>
           <Link
             to="/tarefas-diarias"

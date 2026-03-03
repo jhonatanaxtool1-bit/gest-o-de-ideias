@@ -5,6 +5,7 @@ const path = require('path')
 
 const createDb = require('./db')
 const documentsRouter = require('./routes/documents')
+const listsRouter = require('./routes/lists')
 const organizationRouter = require('./routes/organization')
 const dailyTasksRouter = require('./routes/dailyTasks')
 const professionalPlanningRouter = require('./routes/professionalPlanning')
@@ -21,6 +22,7 @@ const db = createDb(path.resolve(process.env.SQLITE_PATH || path.join(__dirname,
 app.locals.db = db
 
 app.use('/api/documents', documentsRouter)
+app.use('/api/lists', listsRouter)
 app.use('/api', organizationRouter) // organization routes: /api/interests and /api/areas
 app.use('/api', dailyTasksRouter)
 app.use('/api', professionalPlanningRouter)

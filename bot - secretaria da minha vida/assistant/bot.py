@@ -265,6 +265,86 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
             priority = dados.get("priority", "medium")
             obsidian_service.criar_card_planejamento_pessoal(title=title, status=status, priority=priority)
             resposta = f"{resposta}\n\n✅ Tarefa criada no planejamento pessoal."
+        elif acao == "criar_lista" and dados:
+            title = (dados.get("titulo") or dados.get("title") or "").strip() or "Sem título"
+            list_type = (dados.get("listType") or dados.get("list_type") or "geral").strip() or "geral"
+            items = dados.get("itens") or dados.get("items") or []
+            lst = obsidian_service.criar_lista(title=title, list_type=list_type, items=items)
+            n = len(lst.get("items", []))
+            resposta = f"{resposta}\n\n✅ Lista criada: {title} ({list_type}). {n} item(ns) adicionado(s)."
+        elif acao == "atualizar_ideia" and dados:
+            doc_id = (dados.get("id") or "").strip()
+            if not doc_id:
+                resposta = f"{resposta}\n\n⚠️ Não foi possível atualizar: informe o id da ideia."
+            else:
+                payload = {}
+                if "titulo" in dados:
+                    payload["title"] = (dados.get("titulo") or "").strip()
+                if "resumo" in dados:
+                    payload["content"] = (dados.get("resumo") or "").strip()
+                if "interest" in dados:
+                    payload["interest"] = (dados.get("interest") or "").strip()
+                if "area" in dados:
+                    payload["area"] = (dados.get("area") or "").strip()
+                if "tags" in dados:
+                    payload["tags"] = dados.get("tags") if isinstance(dados.get("tags"), list) else []
+                if payload:
+                    obsidian_service.atualizar_documento(doc_id, payload)
+                    resposta = f"{resposta}\n\n✅ Ideia atualizada."
+                else:
+                    resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
+        elif acao == "atualizar_lista" and dados:
+            list_id = (dados.get("id") or "").strip()
+            if not list_id:
+                resposta = f"{resposta}\n\n⚠️ Não foi possível atualizar: informe o id da lista."
+            else:
+                item_id = (dados.get("itemId") or dados.get("item_id") or "").strip()
+                if item_id and ("done" in dados or "label" in dados):
+                    kwargs = {}
+                    if "done" in dados:
+                        kwargs["done"] = bool(dados["done"])
+                    if "label" in dados:
+                        kwargs["label"] = (dados.get("label") or "").strip()
+                    if kwargs:
+                        obsidian_service.atualizar_item_lista(list_id, item_id, **kwargs)
+                        resposta = f"{resposta}\n\n✅ Item da lista atualizado."
+                else:
+                    payload = {}
+                    if "titulo" in dados:
+                        payload["title"] = (dados.get("titulo") or "").strip()
+                    if "listType" in dados or "list_type" in dados:
+                        payload["listType"] = (dados.get("listType") or dados.get("list_type") or "geral").strip()
+                    if "itens" in dados or "items" in dados:
+                        raw = dados.get("itens") or dados.get("items") or []
+                        if isinstance(raw, list) and raw:
+                            now = __import__("datetime").datetime.utcnow().isoformat()
+                            items = []
+                            for i, it in enumerate(raw):
+                                if isinstance(it, dict):
+                                    iid = it.get("id") or __import__("uuid").uuid4()
+                                    items.append({
+                                        "id": str(iid) if iid else str(__import__("uuid").uuid4()),
+                                        "listId": list_id,
+                                        "label": (it.get("label") or "").strip() or "(item)",
+                                        "order": it.get("order", i),
+                                        "done": bool(it.get("done", False)),
+                                        "createdAt": it.get("createdAt") or now,
+                                    })
+                                elif isinstance(it, str):
+                                    items.append({
+                                        "id": str(__import__("uuid").uuid4()),
+                                        "listId": list_id,
+                                        "label": (it or "").strip() or "(item)",
+                                        "order": i,
+                                        "done": False,
+                                        "createdAt": now,
+                                    })
+                            payload["items"] = items
+                    if payload:
+                        obsidian_service.atualizar_lista(list_id, payload)
+                        resposta = f"{resposta}\n\n✅ Lista atualizada."
+                    else:
+                        resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
         else:
             # default: just reply
             pass

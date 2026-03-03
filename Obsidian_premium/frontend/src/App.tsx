@@ -9,6 +9,9 @@ import { ProfessionalPlanningPage } from '@/pages/ProfessionalPlanningPage'
 import { PersonalPlanningPage } from '@/pages/PersonalPlanningPage'
 import { DailyTasksPage } from '@/pages/DailyTasksPage'
 import { IdeasVisualizationPage } from '@/pages/IdeasVisualizationPage'
+import { ListasPage } from '@/pages/ListasPage'
+import { ListNewPage } from '@/pages/ListNewPage'
+import { ListEditPage } from '@/pages/ListEditPage'
 
 function App() {
   return (
@@ -19,6 +22,9 @@ function App() {
           <Route path="organizacao" element={<OrganizationPage />} />
           <Route path="ideias" element={<IdeasPage />} />
           <Route path="visualizacao-ideias" element={<IdeasVisualizationPage />} />
+          <Route path="listas" element={<ListasPage />} />
+          <Route path="lista/new" element={<ListNewPage />} />
+          <Route path="lista/:id" element={<ListEditPage />} />
           <Route path="tarefas-diarias" element={<DailyTasksPage />} />
           <Route path="planejamento-profissional" element={<ProfessionalPlanningPage />} />
           <Route path="planejamento-pessoal" element={<PersonalPlanningPage />} />
