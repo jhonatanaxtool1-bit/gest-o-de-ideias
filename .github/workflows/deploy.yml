@@ -32,5 +32,6 @@ jobs:
               cp "$BOT_EXAMPLE" "$BOT_ENV"
               echo "Criado $BOT_ENV a partir de .env.example. Configure os tokens no servidor e reinicie os containers."
             fi
+            docker compose down
             docker compose build --pull
             docker compose up -d
