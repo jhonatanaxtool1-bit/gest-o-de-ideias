@@ -454,8 +454,23 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
     await update.message.reply_text(resposta)
 
 
+def _verificar_acesso(update: Update) -> bool:
+    """Retorna True se o usuário está na lista de permitidos ou se a lista está vazia."""
+    user = update.effective_user
+    if not config.ALLOWED_TELEGRAM_USERS:
+        return True
+    if not user:
+        return False
+    username = (user.username or "").lstrip("@")
+    user_id = str(user.id)
+    return username in config.ALLOWED_TELEGRAM_USERS or user_id in config.ALLOWED_TELEGRAM_USERS
+
+
 async def handler_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handler para mensagens de texto."""
+    if not _verificar_acesso(update):
+        logger.warning("Mensagem bloqueada para usuário: %s (%s)", update.effective_user.username, update.effective_user.id)
+        return
     if not update.message or not update.message.text:
         return
     texto = update.message.text.strip()
@@ -487,6 +502,9 @@ async def handler_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_T
 
 async def handler_mensagem_voz(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handler para mensagens de áudio (voice)."""
+    if not _verificar_acesso(update):
+        logger.warning("Mensagem de voz bloqueada para usuário: %s (%s)", update.effective_user.username, update.effective_user.id)
+        return
     if not update.message or not update.message.voice:
         return
     voice = update.message.voice

@@ -62,3 +62,11 @@ TELEGRAM_CHAT_ID = (os.getenv("TELEGRAM_CHAT_ID") or "").strip()
 # URL base do app (frontend) para o bot enviar links ao criar ideia/lista/tarefa/lembrete ou ao explicar suas funções.
 # Ex.: https://meu-app.vercel.app ou http://localhost:5173
 APP_BASE_URL = (os.getenv("APP_BASE_URL") or "").rstrip("/")
+
+def _parse_allowed_users() -> list[str]:
+    raw = os.getenv("ALLOWED_TELEGRAM_USERS", "")
+    if not raw:
+        return []
+    return [u.strip().lstrip("@") for u in raw.split(",") if u.strip()]
+
+ALLOWED_TELEGRAM_USERS = _parse_allowed_users()
