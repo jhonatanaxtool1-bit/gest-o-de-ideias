@@ -1,0 +1,16 @@
+# Instruções de Instalação de Dependências
+
+Para que o novo editor de texto rico com suporte a checklists (estilo Notion) funcione corretamente, você precisa instalar os seguintes pacotes no frontend do projeto.
+
+## Frontend (Node.js)
+Abra um terminal, navegue até a pasta `c:\projeto\python\projeto_web\gestão de ideias\Obsidian_premium\frontend` e execute:
+
+```bash
+npm install @tiptap/extension-task-list @tiptap/extension-task-item
+```
+
+## Backend
+Não foi adicionada nenhuma dependência nova no backend para essa funcionalidade. O backend (que também é Node.js) utilizará os que já possui.
+
+## Python
+Não há dependências Python novas relacionadas ao editor de texto rico, pois o projeto usa Node.js no frontend (React) e backend (Express/SQLite).
