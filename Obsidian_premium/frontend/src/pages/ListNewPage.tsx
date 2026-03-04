@@ -2,19 +2,15 @@ import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLists } from '@/modules/lists/useLists'
 
-const LIST_TYPES = ['geral', 'compras', 'tarefas', 'livros', 'projetos', 'outro']
 
 export function ListNewPage() {
   const navigate = useNavigate()
   const { create } = useLists()
   const [title, setTitle] = useState('')
-  const [listType, setListType] = useState('geral')
-  const [customType, setCustomType] = useState('')
-  const [initialItems, setInitialItems] = useState('')
+  const [initialItems, setInitialItems] = useState([{ id: Date.now(), label: '' }])
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const effectiveType = listType === 'outro' ? customType.trim() || 'geral' : listType
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -27,11 +23,10 @@ export function ListNewPage() {
     setIsSubmitting(true)
     try {
       const items = initialItems
-        .split('\n')
-        .map((line) => line.trim())
+        .map((i) => i.label.trim())
         .filter(Boolean)
         .map((label) => ({ label }))
-      const list = await create({ title: trimmedTitle, listType: effectiveType, items })
+      const list = await create({ title: trimmedTitle, listType: 'geral', items })
       if (list) navigate(`/lista/${list.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar lista.')
@@ -47,7 +42,7 @@ export function ListNewPage() {
           <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Segundo Cérebro</p>
           <h1 className="mt-2 text-3xl font-semibold text-zinc-100">Criar lista</h1>
           <p className="mt-2 text-sm text-zinc-400">
-            Defina o título, o tipo e opcionalmente os primeiros itens.
+            Defina o título e os primeiros itens da lista.
           </p>
         </header>
 
@@ -73,46 +68,63 @@ export function ListNewPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1.5">Tipo da lista</label>
-            <div className="flex flex-wrap gap-2">
-              {LIST_TYPES.map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setListType(type)}
-                  className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
-                    listType === type
-                      ? 'bg-accent text-white'
-                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-                  }`}
-                >
-                  {type}
-                </button>
+            <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+              Itens iniciais
+            </label>
+            <div className="flex flex-col gap-2 rounded-lg border border-zinc-700 bg-zinc-900 p-3">
+              {initialItems.map((item, idx) => (
+                <div key={item.id} className="group flex items-center gap-3">
+                  <div className="h-4 w-4 shrink-0 rounded border border-zinc-600 bg-zinc-800/50" />
+                  <input
+                    type="text"
+                    value={item.label}
+                    onChange={(e) => {
+                      const newItems = [...initialItems]
+                      newItems[idx].label = e.target.value
+                      setInitialItems(newItems)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const newItems = [...initialItems]
+                        newItems.splice(idx + 1, 0, { id: Date.now() + Math.random(), label: '' })
+                        setInitialItems(newItems)
+                      } else if (e.key === 'Backspace' && item.label === '' && initialItems.length > 1) {
+                        e.preventDefault()
+                        let newItems = [...initialItems]
+                        newItems.splice(idx, 1)
+                        setInitialItems(newItems)
+                      }
+                    }}
+                    placeholder={idx === 0 ? "Ex.: Leite" : "Adicionar item..."}
+                    className="flex-1 bg-transparent text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none"
+                    autoFocus={idx > 0 && idx === initialItems.length - 1 && item.label === ''}
+                  />
+                  {initialItems.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        let newItems = [...initialItems]
+                        newItems.splice(idx, 1)
+                        setInitialItems(newItems)
+                      }}
+                      className="text-zinc-600 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
-            {listType === 'outro' && (
-              <input
-                type="text"
-                value={customType}
-                onChange={(e) => setCustomType(e.target.value)}
-                placeholder="Digite o tipo"
-                className="mt-2 w-full h-10 rounded-lg border border-zinc-700 bg-zinc-900 px-3 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600"
-              />
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="initialItems" className="block text-sm font-medium text-zinc-300 mb-1.5">
-              Itens iniciais (opcional, um por linha)
-            </label>
-            <textarea
-              id="initialItems"
-              value={initialItems}
-              onChange={(e) => setInitialItems(e.target.value)}
-              placeholder="Leite&#10;Pão&#10;Ovos"
-              rows={5}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600 focus:ring-2 focus:ring-accent/20 resize-y"
-            />
+            <button
+              type="button"
+              onClick={() => setInitialItems([...initialItems, { id: Date.now(), label: '' }])}
+              className="mt-2 text-sm text-zinc-400 transition-colors hover:text-zinc-200"
+            >
+              + Adicionar item
+            </button>
           </div>
 
           <div className="flex gap-3">
