@@ -299,6 +299,23 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
             url = _link("planejamento-profissional")
             if url:
                 resposta += f"\n\n🔗 {url}"
+        elif acao == "atualizar_planejamento" and dados:
+            card_id = (dados.get("id") or "").strip()
+            if not card_id:
+                resposta = f"{resposta}\n\n⚠️ Não foi possível atualizar: informe o id da tarefa."
+            else:
+                payload = {}
+                for key in ("titulo", "status", "priority", "isFinalized"):
+                    if key in dados:
+                        val = dados[key]
+                        if key == "titulo": payload["title"] = str(val).strip()
+                        elif key == "isFinalized": payload[key] = bool(val)
+                        else: payload[key] = str(val).strip()
+                if payload:
+                    obsidian_service.atualizar_card_planejamento(card_id, payload)
+                    resposta = f"{resposta}\n\n✅ Tarefa de planejamento empresarial atualizada."
+                else:
+                    resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
         elif acao == "criar_tarefa_planejamento_pessoal" and dados:
             title = dados.get("titulo") or dados.get("title") or "Tarefa"
             corrigido = llm.corrigir_titulo_resumo(title)
@@ -311,6 +328,23 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
             url = _link("planejamento-pessoal")
             if url:
                 resposta += f"\n\n🔗 {url}"
+        elif acao == "atualizar_planejamento_pessoal" and dados:
+            card_id = (dados.get("id") or "").strip()
+            if not card_id:
+                resposta = f"{resposta}\n\n⚠️ Não foi possível atualizar: informe o id da tarefa."
+            else:
+                payload = {}
+                for key in ("titulo", "status", "priority", "isFinalized"):
+                    if key in dados:
+                        val = dados[key]
+                        if key == "titulo": payload["title"] = str(val).strip()
+                        elif key == "isFinalized": payload[key] = bool(val)
+                        else: payload[key] = str(val).strip()
+                if payload:
+                    obsidian_service.atualizar_card_planejamento_pessoal(card_id, payload)
+                    resposta = f"{resposta}\n\n✅ Tarefa de planejamento pessoal atualizada."
+                else:
+                    resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
         elif acao == "criar_lista" and dados:
             title = (dados.get("titulo") or dados.get("title") or "").strip() or "Sem título"
             corrigido = llm.corrigir_titulo_resumo(title)
@@ -373,6 +407,20 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                 url = _link("lembretes")
                 if url:
                     resposta += f"\n\n🔗 {url}"
+        elif acao == "atualizar_lembrete" and dados:
+            rem_id = (dados.get("id") or "").strip()
+            if not rem_id:
+                resposta = f"{resposta}\n\n⚠️ Não foi possível atualizar: informe o id do lembrete."
+            else:
+                payload = {}
+                for key in ("titulo", "body", "firstDueAt", "recurrence"):
+                    if key in dados:
+                        payload[key] = str(dados[key]).strip()
+                if payload:
+                    obsidian_service.atualizar_lembrete(rem_id, payload)
+                    resposta = f"{resposta}\n\n✅ Lembrete atualizado."
+                else:
+                    resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
         elif acao == "lançar_lembretes":
             try:
                 vencidos = obsidian_service.listar_lembretes_vencidos()

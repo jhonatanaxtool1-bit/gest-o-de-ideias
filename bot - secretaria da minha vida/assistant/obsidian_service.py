@@ -163,6 +163,13 @@ def criar_card_planejamento(title: str, status: str = "todo", priority: str = "m
     return resp.json()
 
 
+def atualizar_card_planejamento(card_id: str, payload: dict) -> dict:
+    """Atualiza um card do planejamento profissional. payload: title?, status?, priority?, isFinalized?."""
+    resp = requests.patch(_base(f"/api/professional-planning/cards/{card_id}"), json=payload, timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
 def criar_card_planejamento_pessoal(title: str, status: str = "todo", priority: str = "medium") -> dict:
     payload = {
         "id": str(uuid.uuid4()),
@@ -174,6 +181,13 @@ def criar_card_planejamento_pessoal(title: str, status: str = "todo", priority: 
         "updatedAt": datetime.utcnow().isoformat(),
     }
     resp = requests.post(_base("/api/personal-planning/cards"), json=payload, timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def atualizar_card_planejamento_pessoal(card_id: str, payload: dict) -> dict:
+    """Atualiza um card do planejamento pessoal. payload: title?, status?, priority?, isFinalized?."""
+    resp = requests.patch(_base(f"/api/personal-planning/cards/{card_id}"), json=payload, timeout=OPENROUTER_TIMEOUT)
     resp.raise_for_status()
     return resp.json()
 
@@ -233,6 +247,13 @@ def marcar_lembrete_disparado(reminder_id: str) -> dict:
         json={"lastTriggeredAt": now},
         timeout=OPENROUTER_TIMEOUT,
     )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def atualizar_lembrete(reminder_id: str, payload: dict) -> dict:
+    """Atualiza um lembrete (título, corpo, data, recorrência, etc.)."""
+    resp = requests.patch(_base(f"/api/reminders/{reminder_id}"), json=payload, timeout=OPENROUTER_TIMEOUT)
     resp.raise_for_status()
     return resp.json()
 
