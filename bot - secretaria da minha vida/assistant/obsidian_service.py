@@ -178,6 +178,18 @@ def criar_card_planejamento_pessoal(title: str, status: str = "todo", priority: 
     return resp.json()
 
 
+def listar_cards_planejamento() -> List[dict]:
+    resp = requests.get(_base("/api/professional-planning/cards"), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def listar_cards_planejamento_pessoal() -> List[dict]:
+    resp = requests.get(_base("/api/personal-planning/cards"), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
 # --- Lembretes ---
 
 def listar_lembretes() -> List[dict]:

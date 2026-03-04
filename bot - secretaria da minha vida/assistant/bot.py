@@ -441,6 +441,98 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                         resposta = f"{resposta}\n\n✅ Lista atualizada."
                     else:
                         resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
+        elif acao == "listar_planejamentos_empresariais":
+            try:
+                cards = obsidian_service.listar_cards_planejamento()
+                if not cards:
+                    resposta = f"{resposta}\n\nNenhum planejamento empresarial no momento."
+                else:
+                    cards_abertos = [c for c in cards if not c.get("isFinalized")]
+                    if not cards_abertos:
+                        resposta = f"{resposta}\n\nTodos os planejamentos empresariais estão concluídos."
+                    else:
+                        linhas = [f"💼 Planejamento Empresarial ({len(cards_abertos)} ativos):"]
+                        for c in cards_abertos:
+                            linhas.append(f"• {c.get('title', 'Sem título')} (Prioridade: {c.get('priority', 'medium')})")
+                        resposta = f"{resposta}\n\n" + "\n".join(linhas)
+            except requests.RequestException:
+                resposta = f"{resposta}\n\n⚠️ Erro ao buscar planejamentos empresariais."
+        elif acao == "listar_planejamentos_pessoais":
+            try:
+                cards = obsidian_service.listar_cards_planejamento_pessoal()
+                if not cards:
+                    resposta = f"{resposta}\n\nNenhum planejamento pessoal no momento."
+                else:
+                    cards_abertos = [c for c in cards if not c.get("isFinalized")]
+                    if not cards_abertos:
+                        resposta = f"{resposta}\n\nTodos os planejamentos pessoais estão concluídos."
+                    else:
+                        linhas = [f"👤 Planejamento Pessoal ({len(cards_abertos)} ativos):"]
+                        for c in cards_abertos:
+                            linhas.append(f"• {c.get('title', 'Sem título')} (Prioridade: {c.get('priority', 'medium')})")
+                        resposta = f"{resposta}\n\n" + "\n".join(linhas)
+            except requests.RequestException:
+                resposta = f"{resposta}\n\n⚠️ Erro ao buscar planejamentos pessoais."
+        elif acao == "listar_lembretes_ativos":
+            try:
+                lembretes = obsidian_service.listar_lembretes()
+                if not lembretes:
+                    resposta = f"{resposta}\n\nNenhum lembrete cadastrado."
+                else:
+                    linhas = [f"⏰ Seus Lembretes ({len(lembretes)}):"]
+                    for rm in lembretes:
+                        linhas.append(f"• {rm.get('title', 'Lembrete')}")
+                    resposta = f"{resposta}\n\n" + "\n".join(linhas)
+            except requests.RequestException:
+                resposta = f"{resposta}\n\n⚠️ Erro ao buscar lembretes."
+        elif acao == "listar_listas":
+            try:
+                listas = obsidian_service.listar_listas()
+                if not listas:
+                    resposta = f"{resposta}\n\nNenhuma lista cadastrada."
+                else:
+                    linhas = [f"📋 Suas Listas ({len(listas)}):"]
+                    for lst in listas:
+                        items = lst.get("items", [])
+                        pendentes = len([i for i in items if not i.get("done")])
+                        linhas.append(f"• {lst.get('title', 'Sem título')} ({pendentes}/{len(items)} pendentes)")
+                    resposta = f"{resposta}\n\n" + "\n".join(linhas)
+            except requests.RequestException:
+                resposta = f"{resposta}\n\n⚠️ Erro ao buscar listas."
+        elif acao == "listar_categorias":
+            try:
+                interesses = obsidian_service.listar_interesses()
+                areas = obsidian_service.listar_areas()
+                cats = _formatar_lista_interesses_areas(interesses, areas)
+                resposta = f"{resposta}\n\n{cats}"
+            except requests.RequestException:
+                resposta = f"{resposta}\n\n⚠️ Erro ao buscar categorias."
+        elif acao == "buscar_ideia" and dados:
+            termo = str(dados.get("termo") or "").strip().lower()
+            try:
+                docs = obsidian_service.listar_documentos()
+                if not docs:
+                    resposta = f"{resposta}\n\nNenhuma ideia cadastrada no banco."
+                else:
+                    encontradas = [d for d in docs if termo in d.get("title", "").lower() or termo in d.get("content", "").lower()]
+                    if not encontradas:
+                        resposta = f"{resposta}\n\nNenhuma ideia encontrada com '{termo}'."
+                    else:
+                        top = encontradas[:3]
+                        linhas = [f"🔍 Ideias encontradas ({len(encontradas)}):"]
+                        for d in top:
+                            t = d.get("title", "Sem título")
+                            a = d.get("area", "")
+                            i = d.get("interest", "")
+                            url = _link(f"ideia/{d.get('id')}")
+                            linhas.append(f"• {t} ({i} > {a})")
+                            if url:
+                                linhas.append(f"  🔗 {url}")
+                        if len(encontradas) > 3:
+                            linhas.append(f"...e mais {len(encontradas)-3} ideias.")
+                        resposta = f"{resposta}\n\n" + "\n".join(linhas)
+            except requests.RequestException:
+                resposta = f"{resposta}\n\n⚠️ Erro ao buscar ideias."
         else:
             # default: just reply
             pass
