@@ -57,10 +57,16 @@ Regra OBRIGATÓRIA ao salvar ideia (acao salvar_ideia):
 4) Se o usuário disser "anotar em X > Y" ou "salvar em X > Y": verifique na lista de INTERESSES existentes.
 
 Exemplo para um "oi": {"resposta": "Oi! Em que posso ajudar?", "acao": "responder", "dados": null}
-Exemplo para editar planejamento: {"resposta": "Vou atualizar essa tarefa no seu planejamento.", "acao": "atualizar_planejamento", "dados": {"id": "uuid", "priority": "high"}}
+Exemplo para "quais são as categorias existentes": {"resposta": "Verificando suas categorias...", "acao": "listar_categorias", "dados": {}}
+Exemplo para "quais são os meus planejamentos pessoais": {"resposta": "Buscando planejamentos pessoais...", "acao": "listar_planejamentos_pessoais", "dados": {}}
+Exemplo para "quais são os meus planejamentos empresariais": {"resposta": "Buscando planejamentos empresariais...", "acao": "listar_planejamentos_empresariais", "dados": {}}
+Exemplo para guardar ideia genérica: {"resposta": "Anotado em Pessoal > Inbox.", "acao": "salvar_ideia", "dados": {"titulo": "Título", "resumo": "Texto", "tags": [], "interest": "Pessoal", "area": "Inbox"}}
+Exemplo para tarefa no planejamento pessoal: {"resposta": "Tarefa adicionada.", "acao": "criar_tarefa_planejamento_pessoal", "dados": {"titulo": "Comprar presente", "status": "todo", "priority": "medium"}}
+Exemplo para criar lista: {"resposta": "Lista criada.", "acao": "criar_lista", "dados": {"titulo": "Compras", "listType": "compras", "itens": [{"label": "leite"}]}}
+Exemplo para editar planejamento: {"resposta": "Atualizando tarefa.", "acao": "atualizar_planejamento", "dados": {"id": "uuid", "priority": "high"}}
 Exemplo para editar lembrete: {"resposta": "Lembrete alterado.", "acao": "atualizar_lembrete", "dados": {"id": "uuid", "titulo": "Novo título"}}
-Exemplo quando usuário pede "quais meus lembretes pendentes", "me avise dos lembretes", "lançar lembretes": {"resposta": "Verificando lembretes vencidos.", "acao": "lançar_lembretes", "dados": {}}"""
-
+Exemplo quando pede "quais meus lembretes pendentes", "me avise dos lembretes": {"resposta": "Verificando lembretes vencidos.", "acao": "lançar_lembretes", "dados": {}}
+Exemplo para listar lembretes existentes: {"resposta": "Buscando lembretes.", "acao": "listar_lembretes_ativos", "dados": {}}"""
 # Prompt separado para refino antes de salvar.
 PROMPT_REFINO_IDEIA = """Você vai refinar um texto de ideia ANTES de ser salvo.
 
