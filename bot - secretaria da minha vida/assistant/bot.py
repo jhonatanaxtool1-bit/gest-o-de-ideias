@@ -49,6 +49,56 @@ def _link(path: str) -> str:
 # Palavras que indicam pedido de salvar/guardar ideia (para buscar interesses e áreas)
 _PALAVRAS_SALVAR_IDEIA = ("guardar", "salvar", "anotar", "ideia", "nota", "registrar", "gravar")
 
+# Palavras que indicam CONSULTA (não criação) de planejamento empresarial
+_PALAVRAS_LISTAR_EMPRESARIAL = (
+    "planejamento empresarial", "planejamentos empresariais",
+    "tarefas empresariais", "tarefa empresarial",
+    "projetos empresariais", "projeto empresarial",
+    "meus projetos empr", "registrado nos projetos",
+    "tenho no planejamento empr", "tenho registrado empr",
+)
+
+# Palavras que indicam CONSULTA (não criação) de planejamento pessoal
+_PALAVRAS_LISTAR_PESSOAL = (
+    "planejamento pessoal", "planejamentos pessoais",
+    "tarefas pessoais", "tarefa pessoal",
+    "projetos pessoais", "projeto pessoal",
+    "tenho no planejamento pessoal", "tenho registrado pessoal",
+)
+
+# Palavras que indicam intenção de CONSULTA (não criação)
+_PALAVRAS_CONSULTA = (
+    "quais são", "quais sao", "o que tenho", "o que eu tenho",
+    "me mostre", "me mostra", "liste", "listar", "mostrar",
+    "tenho registrado", "tenho cadastrado", "registrado",
+    "cadastrado", "ver meus", "ver as", "ver os",
+    "quais", "me diga", "me fala",
+)
+
+
+def _parece_consulta_planejamento_empresarial(texto: str) -> bool:
+    """True se a mensagem parece CONSULTAR (não criar) tarefas do planejamento empresarial."""
+    t = texto.lower().strip()
+    # Se menciona planejamento empresarial com palavras de consulta
+    tem_empresarial = any(k in t for k in _PALAVRAS_LISTAR_EMPRESARIAL)
+    if tem_empresarial:
+        tem_consulta = any(k in t for k in _PALAVRAS_CONSULTA)
+        # Se não tem palavras de criar, presume consulta
+        sem_criar = not any(k in t for k in ("criar", "adicionar", "novo", "nova", "criar tarefa", "adicione", "crie"))
+        return tem_consulta or sem_criar
+    return False
+
+
+def _parece_consulta_planejamento_pessoal(texto: str) -> bool:
+    """True se a mensagem parece CONSULTAR (não criar) tarefas do planejamento pessoal."""
+    t = texto.lower().strip()
+    tem_pessoal = any(k in t for k in _PALAVRAS_LISTAR_PESSOAL)
+    if tem_pessoal:
+        tem_consulta = any(k in t for k in _PALAVRAS_CONSULTA)
+        sem_criar = not any(k in t for k in ("criar", "adicionar", "novo", "nova", "criar tarefa", "adicione", "crie"))
+        return tem_consulta or sem_criar
+    return False
+
 
 def _parece_pedido_salvar_ideia(texto: str) -> bool:
     """True se a mensagem parece pedir para salvar/guardar uma ideia."""
@@ -646,6 +696,58 @@ async def handler_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_T
                 await update.message.reply_text("⚠️ Não consegui carregar interesses/áreas agora (servidor offline).")
             return
 
+        # Detecção local de intenção: consultar planejamento empresarial (sem passar pelo LLM)
+        if _parece_consulta_planejamento_empresarial(texto):
+            logger.info("Detecção local: consulta de planejamento empresarial")
+            try:
+                cards = obsidian_service.listar_cards_planejamento()
+                if not cards:
+                    await update.message.reply_text("❌ Nenhum projeto empresarial criado até o momento.")
+                else:
+                    cards_abertos = [c for c in cards if not c.get("isFinalized")]
+                    cards_finalizados = [c for c in cards if c.get("isFinalized")]
+                    if not cards_abertos:
+                        await update.message.reply_text("✅ Todos os planejamentos empresariais estão concluídos!")
+                    else:
+                        linhas = [f"💼 Planejamento Empresarial ({len(cards_abertos)} ativo(s)):"]
+                        for c in cards_abertos:
+                            prioridade = {"high": "🔴 Alta", "medium": "🟡 Média", "low": "🟢 Baixa"}.get(c.get("priority", ""), c.get("priority", "Média"))
+                            status_label = {"todo": "A fazer", "in_progress": "Em andamento", "done": "Concluído"}.get(c.get("status", ""), c.get("status", ""))
+                            linhas.append(f"• {c.get('title', 'Sem título')} | {prioridade} | {status_label}")
+                        if cards_finalizados:
+                            linhas.append(f"\n✅ {len(cards_finalizados)} tarefa(s) finalizada(s).")
+                        await update.message.reply_text("\n".join(linhas))
+            except requests.RequestException as e:
+                logger.warning("Erro ao buscar planejamentos empresariais: %s", e)
+                await update.message.reply_text("⚠️ Não consegui carregar o planejamento empresarial (servidor offline).")
+            return
+
+        # Detecção local de intenção: consultar planejamento pessoal (sem passar pelo LLM)
+        if _parece_consulta_planejamento_pessoal(texto):
+            logger.info("Detecção local: consulta de planejamento pessoal")
+            try:
+                cards = obsidian_service.listar_cards_planejamento_pessoal()
+                if not cards:
+                    await update.message.reply_text("❌ Nenhum projeto pessoal criado até o momento.")
+                else:
+                    cards_abertos = [c for c in cards if not c.get("isFinalized")]
+                    cards_finalizados = [c for c in cards if c.get("isFinalized")]
+                    if not cards_abertos:
+                        await update.message.reply_text("✅ Todos os planejamentos pessoais estão concluídos!")
+                    else:
+                        linhas = [f"👤 Planejamento Pessoal ({len(cards_abertos)} ativo(s)):"]
+                        for c in cards_abertos:
+                            prioridade = {"high": "🔴 Alta", "medium": "🟡 Média", "low": "🟢 Baixa"}.get(c.get("priority", ""), c.get("priority", "Média"))
+                            status_label = {"todo": "A fazer", "in_progress": "Em andamento", "done": "Concluído"}.get(c.get("status", ""), c.get("status", ""))
+                            linhas.append(f"• {c.get('title', 'Sem título')} | {prioridade} | {status_label}")
+                        if cards_finalizados:
+                            linhas.append(f"\n✅ {len(cards_finalizados)} tarefa(s) finalizada(s).")
+                        await update.message.reply_text("\n".join(linhas))
+            except requests.RequestException as e:
+                logger.warning("Erro ao buscar planejamentos pessoais: %s", e)
+                await update.message.reply_text("⚠️ Não consegui carregar o planejamento pessoal (servidor offline).")
+            return
+
         await _processar_texto_e_responder(texto, update, context)
     except Exception as e:
         logger.exception("Erro ao processar mensagem de texto: %s", e)
@@ -678,6 +780,49 @@ async def handler_mensagem_voz(update: Update, context: ContextTypes.DEFAULT_TYP
             except requests.RequestException:
                 await update.message.reply_text("⚠️ Não consegui carregar interesses/áreas agora (servidor offline).")
             return
+
+        if _parece_consulta_planejamento_empresarial(texto):
+            logger.info("Detecção local (voz): consulta de planejamento empresarial")
+            try:
+                cards = obsidian_service.listar_cards_planejamento()
+                if not cards:
+                    await update.message.reply_text("❌ Nenhum projeto empresarial criado até o momento.")
+                else:
+                    cards_abertos = [c for c in cards if not c.get("isFinalized")]
+                    if not cards_abertos:
+                        await update.message.reply_text("✅ Todos os planejamentos empresariais estão concluídos!")
+                    else:
+                        linhas = [f"💼 Planejamento Empresarial ({len(cards_abertos)} ativo(s)):"]
+                        for c in cards_abertos:
+                            prioridade = {"high": "🔴 Alta", "medium": "🟡 Média", "low": "🟢 Baixa"}.get(c.get("priority", ""), c.get("priority", "Média"))
+                            status_label = {"todo": "A fazer", "in_progress": "Em andamento", "done": "Concluído"}.get(c.get("status", ""), c.get("status", ""))
+                            linhas.append(f"• {c.get('title', 'Sem título')} | {prioridade} | {status_label}")
+                        await update.message.reply_text("\n".join(linhas))
+            except requests.RequestException:
+                await update.message.reply_text("⚠️ Não consegui carregar o planejamento empresarial.")
+            return
+
+        if _parece_consulta_planejamento_pessoal(texto):
+            logger.info("Detecção local (voz): consulta de planejamento pessoal")
+            try:
+                cards = obsidian_service.listar_cards_planejamento_pessoal()
+                if not cards:
+                    await update.message.reply_text("❌ Nenhum projeto pessoal criado até o momento.")
+                else:
+                    cards_abertos = [c for c in cards if not c.get("isFinalized")]
+                    if not cards_abertos:
+                        await update.message.reply_text("✅ Todos os planejamentos pessoais estão concluídos!")
+                    else:
+                        linhas = [f"👤 Planejamento Pessoal ({len(cards_abertos)} ativo(s)):"]
+                        for c in cards_abertos:
+                            prioridade = {"high": "🔴 Alta", "medium": "🟡 Média", "low": "🟢 Baixa"}.get(c.get("priority", ""), c.get("priority", "Média"))
+                            status_label = {"todo": "A fazer", "in_progress": "Em andamento", "done": "Concluído"}.get(c.get("status", ""), c.get("status", ""))
+                            linhas.append(f"• {c.get('title', 'Sem título')} | {prioridade} | {status_label}")
+                        await update.message.reply_text("\n".join(linhas))
+            except requests.RequestException:
+                await update.message.reply_text("⚠️ Não consegui carregar o planejamento pessoal.")
+            return
+
         await _processar_texto_e_responder(texto, update, context)
     except audio.FFmpegNotFoundError:
         await update.message.reply_text(
