@@ -8,6 +8,28 @@ if [ ! -f "$ROOT_DIR/docker-compose.yml" ]; then
   exit 1
 fi
 
+# Verificar .env do bot — obrigatório e NÃO versionado no git
+BOT_ENV="$ROOT_DIR/bot - secretaria da minha vida/.env"
+if [ ! -f "$BOT_ENV" ]; then
+  echo "" >&2
+  echo "================================================================" >&2
+  echo "  ERRO: arquivo .env do bot não encontrado!" >&2
+  echo "  Caminho esperado: $BOT_ENV" >&2
+  echo "" >&2
+  echo "  Crie-o manualmente no servidor com as variáveis obrigatórias:" >&2
+  echo "    TELEGRAM_BOT_TOKEN=..." >&2
+  echo "    OPENROUTER_API_KEY=..." >&2
+  echo "    OPENROUTER_MODEL=..." >&2
+  echo "    NOTION_TOKEN=..." >&2
+  echo "    TELEGRAM_CHAT_ID=..." >&2
+  echo "" >&2
+  echo "  Use como base o arquivo .env.example do repositório." >&2
+  echo "================================================================" >&2
+  echo "" >&2
+  exit 1
+fi
+echo ".env do bot encontrado. OK"
+
 echo "Repo root: $ROOT_DIR"
 
 echo "Checando status do git..."
