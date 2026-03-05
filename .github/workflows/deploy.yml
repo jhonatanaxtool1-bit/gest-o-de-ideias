@@ -32,46 +32,74 @@ jobs:
             # ── Garantir .env do bot ────────────────────────────────────────
             BOT_ENV="bot - secretaria da minha vida/.env"
             BOT_EXAMPLE="bot - secretaria da minha vida/.env.example"
-            if [ ! -f "$BOT_ENV" ] && [ -f "$BOT_EXAMPLE" ]; then
-              cp "$BOT_EXAMPLE" "$BOT_ENV"
-              echo "AVISO: Criado $BOT_ENV a partir de .env.example. Configure os tokens no servidor."
+
+            # Se .env nao existe, tenta criar a partir do .env.example
+            if [ ! -f "$BOT_ENV" ]; then
+              if [ -f "$BOT_EXAMPLE" ]; then
+                cp "$BOT_EXAMPLE" "$BOT_ENV"
+                echo "AVISO: .env nao encontrado. Criado a partir de .env.example."
+                echo "       Preencha os tokens em: $BOT_ENV"
+              else
+                echo "ERRO: Nem .env nem .env.example encontrados em: $BOT_ENV" >&2
+                exit 1
+              fi
+            else
+              echo ".env do bot encontrado. Usando existente."
             fi
 
+            # Verificar se tokens obrigatorios estao preenchidos
+            check_var() {
+              VAL=$(grep -E "^${1}=" "$BOT_ENV" | cut -d= -f2- | tr -d '[:space:]')
+              if [ -z "$VAL" ]; then
+                echo "================================================================" >&2
+                echo "  ERRO: $1 esta vazio no $BOT_ENV"                             >&2
+                echo "  Preencha o token real no servidor e faca o deploy novamente." >&2
+                echo "================================================================" >&2
+                exit 1
+              fi
+              PREVIEW=$(echo "$VAL" | cut -c1-8)
+              echo "  $1 = ${PREVIEW}... (OK)"
+            }
+            echo ">>> Verificando tokens no .env do bot..."
+            check_var TELEGRAM_BOT_TOKEN
+            check_var OPENROUTER_API_KEY
+            echo ".env do bot OK - todos os tokens presentes."
+
+            # ── Remover container e imagem antiga do bot (build limpo) ───────
+            echo ">>> Removendo container e imagem do bot (build limpo a cada deploy)..."
+            docker rm -f gest-o-de-ideias-bot-1 2>/dev/null || true
+            docker rmi -f gest-o-de-ideias-bot  2>/dev/null || true
+
+            # ── Parar todos os containers do compose ─────────────────────────
+            echo ">>> Parando containers do compose..."
+            docker compose --project-name gest-o-de-ideias down --remove-orphans || true
+
             # ── Limpar containers com nomes antigos/divergentes ─────────────
-            # Isso evita o problema de rodar compose de uma subpasta e criar
-            # containers com nome diferente (ex: gestao-ideias-* vs gest-o-de-ideias-*)
-            echo ">>> Removendo containers com padrões de nome antigos..."
             docker ps -a --format '{{.Names}}' \
               | grep -E '^(gestao-ideias|gest-o-de-ideias)-' \
               | xargs -r docker rm -f 2>/dev/null || true
 
-            # ── Parar containers do compose (libera portas gerenciadas) ─────
-            echo ">>> Parando containers do compose..."
-            docker compose --project-name gest-o-de-ideias down --remove-orphans || true
-
-            # ── Forçar liberação das portas 4001 e 8813 ─────────────────────
-            # Mata QUALQUER container (inclusive externos ao compose) que esteja
-            # usando essas portas – evita o erro "port is already allocated".
+            # ── Forcar liberacao das portas 4001 e 8813 ──────────────────────
             echo ">>> Verificando portas 4001 e 8813..."
             for PORT in 4001 8813; do
               CONTAINERS=$(docker ps --format '{{.ID}} {{.Ports}}' \
                 | grep ":${PORT}->" | awk '{print $1}')
               if [ -n "$CONTAINERS" ]; then
-                echo "    Porta $PORT ocupada por: $CONTAINERS — removendo..."
+                echo "    Porta $PORT ocupada por: $CONTAINERS - removendo..."
                 echo "$CONTAINERS" | xargs docker rm -f 2>/dev/null || true
               else
                 echo "    Porta $PORT livre."
               fi
             done
 
-            # ── Aguardar liberação efetiva das portas ───────────────────────
+            # ── Aguardar liberacao efetiva das portas ──────────────────────
             echo ">>> Aguardando portas liberarem..."
             for PORT in 4001 8813; do
               TIMEOUT=15
               ELAPSED=0
               while ss -tlnp "sport = :${PORT}" 2>/dev/null | grep -q ":${PORT}"; do
                 if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
-                  echo "ERRO: Porta $PORT ainda ocupada após ${TIMEOUT}s. Abortando." >&2
+                  echo "ERRO: Porta $PORT ainda ocupada apos ${TIMEOUT}s. Abortando." >&2
                   exit 1
                 fi
                 sleep 1
@@ -80,12 +108,16 @@ jobs:
               echo "    Porta $PORT confirmada como livre."
             done
 
-            # ── Build e subida ───────────────────────────────────────────────
-            echo ">>> Buildando imagens..."
-            docker compose --project-name gest-o-de-ideias build --pull
+            # ── Build: bot sem cache, demais com cache ───────────────────────
+            echo ">>> Buildando backend e frontend (com cache)..."
+            docker compose --project-name gest-o-de-ideias build --pull backend frontend
 
+            echo ">>> Buildando bot do ZERO (sem cache)..."
+            docker compose --project-name gest-o-de-ideias build --no-cache --pull bot
+
+            # ── Subir todos os containers ────────────────────────────────────
             echo ">>> Subindo containers..."
             docker compose --project-name gest-o-de-ideias up -d --remove-orphans
 
-            echo ">>> Deploy concluído com sucesso!"
+            echo ">>> Deploy concluido com sucesso!"
             docker compose --project-name gest-o-de-ideias ps
