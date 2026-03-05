@@ -24,6 +24,9 @@ jobs:
           script: |
             set -e
             cd "$DEPLOY_PATH"
+
+            # ── Nome fixo do projeto (evita containers duplicados com nomes diferentes) ──
+            export COMPOSE_PROJECT_NAME=gest-o-de-ideias
             git pull
 
             # ── Garantir .env do bot ────────────────────────────────────────
@@ -34,9 +37,17 @@ jobs:
               echo "AVISO: Criado $BOT_ENV a partir de .env.example. Configure os tokens no servidor."
             fi
 
+            # ── Limpar containers com nomes antigos/divergentes ─────────────
+            # Isso evita o problema de rodar compose de uma subpasta e criar
+            # containers com nome diferente (ex: gestao-ideias-* vs gest-o-de-ideias-*)
+            echo ">>> Removendo containers com padrões de nome antigos..."
+            docker ps -a --format '{{.Names}}' \
+              | grep -E '^(gestao-ideias|gest-o-de-ideias)-' \
+              | xargs -r docker rm -f 2>/dev/null || true
+
             # ── Parar containers do compose (libera portas gerenciadas) ─────
             echo ">>> Parando containers do compose..."
-            docker compose down --remove-orphans || true
+            docker compose --project-name gest-o-de-ideias down --remove-orphans || true
 
             # ── Forçar liberação das portas 4001 e 8813 ─────────────────────
             # Mata QUALQUER container (inclusive externos ao compose) que esteja
@@ -71,10 +82,10 @@ jobs:
 
             # ── Build e subida ───────────────────────────────────────────────
             echo ">>> Buildando imagens..."
-            docker compose build --pull
+            docker compose --project-name gest-o-de-ideias build --pull
 
             echo ">>> Subindo containers..."
-            docker compose up -d --remove-orphans
+            docker compose --project-name gest-o-de-ideias up -d --remove-orphans
 
             echo ">>> Deploy concluído com sucesso!"
-            docker compose ps
+            docker compose --project-name gest-o-de-ideias ps
