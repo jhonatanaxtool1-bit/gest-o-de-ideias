@@ -27,6 +27,12 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+# Silenciar bibliotecas externas barulhentas
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("selenium").setLevel(logging.WARNING)
+logging.getLogger("telegram").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 logger = logging.getLogger(__name__)
 
 RESPOSTA_ERRO = "Não foi possível processar agora. Tente mais tarde."
@@ -210,15 +216,20 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
     interesses_areas = None
     if _parece_pedido_salvar_ideia(texto):
         try:
+            logger.info("Buscando interesses/áreas para contextualizar salvamento de ideia...")
             interesses = obsidian_service.listar_interesses()
             areas = obsidian_service.listar_areas()
             interesses_areas = (interesses, areas)
         except requests.RequestException as e:
-            logger.warning("Não foi possível carregar interesses/áreas do Obsidian: %s", e)
+            logger.warning("Falha ao buscar interesses/áreas do Obsidian: %s", e)
+    
+    logger.info("Enviando texto para LLM (OpenRouter)...")
     resultado = llm.perguntar_llm(texto, contexto_memoria=memoria_dados, interesses_areas=interesses_areas)
     resposta = resultado.get("resposta", "Ok.")
     acao = resultado.get("acao", "responder")
     dados = resultado.get("dados")
+    
+    logger.info("Ação identificada: %s", acao)
 
     try:
         if acao == "salvar_ideia" and dados:
@@ -616,6 +627,7 @@ async def handler_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_T
     texto = update.message.text.strip()
     if not texto:
         return
+    logger.info("Nova mensagem de %s: %r", update.effective_user.username, texto)
     try:
         # Check for pending confirmation first
         pending = memory.get_pending_action()

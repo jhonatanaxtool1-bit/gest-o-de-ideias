@@ -476,4 +476,6 @@ def perguntar_llm(
 
     if isinstance(parsed, list):
         parsed = parsed[0] if parsed else {}
+    
+    logger.info("JSON extraído da LLM: %s", json.dumps(parsed, ensure_ascii=False))
     return _normalizar_resposta(parsed)
