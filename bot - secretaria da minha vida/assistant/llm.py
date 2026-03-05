@@ -55,7 +55,7 @@ Formato obrigatório:
   - criar_lista: {"titulo": "...", "listType": "compras|tarefas|livros|geral|outro", "itens": [{"label": "..."}, ...]}
   - atualizar_ideia: {"id": "uuid da ideia", "titulo": "opcional", "resumo": "opcional", "interest": "opcional", "area": "opcional", "tags": "opcional"}
   - atualizar_lista: {"id": "uuid da lista", "titulo": "opcional", "listType": "opcional", "itens": "opcional: array de {id?, label, done} para substituir/atualizar itens"}
-  - criar_lembrete, atualizar_lembrete: {"id": "uuid se atualizar", "titulo": "...", "body": "opcional", "firstDueAt": "ISO 8601 data/hora", "recurrence": "once|daily|every_2_days|weekly"}
+  - criar_lembrete, atualizar_lembrete: {"id": "uuid se atualizar", "titulo": "...", "body": "opcional", "firstDueAt": "ISO 8601 SEMPRE com offset de Brasilia (UTC-3), ex: '2026-03-04T23:55:00-03:00'. NUNCA use Z nem omita o offset.", "recurrence": "once|daily|every_2_days|weekly"}
   - lançar_lembretes, listar_planejamentos_empresariais, listar_planejamentos_pessoais, listar_lembretes_ativos, listar_listas, listar_categorias: dados vazio {}
   - buscar_ideia: {"termo": "um trecho do título que o usuário está buscando para encontrar a ideia"}
 
@@ -79,7 +79,7 @@ Exemplo para um "oi": {"resposta": "Oi! Em que posso ajudar?", "acao": "responde
 Exemplo para guardar ideia genérica: {"resposta": "Anotado em Pessoal > Inbox.", "acao": "salvar_ideia", "dados": {"titulo": "Título", "resumo": "Texto", "tags": [], "interest": "Pessoal", "area": "Inbox"}}
 Exemplo para "registre na area instagram que preciso lançar um vídeo": {"resposta": "Ideia registrada.", "acao": "salvar_ideia", "dados": {"titulo": "Lançar vídeo", "resumo": "Preciso lançar um vídeo", "tags": [], "interest": "Redes Sociais", "area": "Instagram"}}
 Exemplo para "salve na area naxtool que tenho que terminar o app": {"resposta": "Ideia salva.", "acao": "salvar_ideia", "dados": {"titulo": "Terminar o app", "resumo": "Tenho que terminar o app", "tags": [], "interest": "Naxtool", "area": "Sistemas"}}
-Exemplo para criar LEMBRETE (só com palavras explícitas): {"resposta": "Lembrete criado.", "acao": "criar_lembrete", "dados": {"titulo": "Comprar presente", "firstDueAt": "2024-01-01T10:00:00Z", "recurrence": "once"}}
+Exemplo para criar LEMBRETE (so com palavras explicitas): {"resposta": "Lembrete criado.", "acao": "criar_lembrete", "dados": {"titulo": "Comprar presente", "firstDueAt": "2024-01-01T10:00:00-03:00", "recurrence": "once"}}
 Exemplo para tarefa no planejamento pessoal: {"resposta": "Tarefa adicionada.", "acao": "criar_tarefa_planejamento_pessoal", "dados": {"titulo": "Comprar presente", "status": "todo", "priority": "medium"}}
 Exemplo para criar lista: {"resposta": "Lista criada.", "acao": "criar_lista", "dados": {"titulo": "Compras", "listType": "compras", "itens": [{"label": "leite"}]}}
 Exemplo para editar planejamento: {"resposta": "Atualizando tarefa.", "acao": "atualizar_planejamento", "dados": {"id": "uuid", "priority": "high"}}

@@ -455,9 +455,26 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                     first_due = __import__("datetime").datetime.utcnow().isoformat() + "Z"
                 else:
                     try:
-                        dt = __import__("datetime").datetime.fromisoformat(first_due.replace("Z", "+00:00"))
-                        first_due = dt.strftime("%Y-%m-%dT%H:%M:%S.000Z") if first_due.endswith("Z") or "+" in first_due else dt.isoformat() + "Z"
-                    except (ValueError, TypeError):
+                        import datetime as _dt
+                        _raw = first_due
+                        # Se vem com offset explícito (Z ou +HH:MM), parseia normalmente
+                        if _raw.endswith("Z") or "+" in _raw[10:] or "-" in _raw[10:]:
+                            _dtobj = _dt.datetime.fromisoformat(_raw.replace("Z", "+00:00"))
+                            # Garante que está em UTC
+                            if _dtobj.tzinfo is not None:
+                                _dtobj = _dtobj.utctimetuple()
+                                _dtobj = _dt.datetime(*_dtobj[:6], tzinfo=_dt.timezone.utc)
+                            first_due = _dtobj.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+                        else:
+                            # Sem offset: LLM enviou horário local (Brasília = UTC-3)
+                            # Converte de UTC-3 para UTC somando 3 horas
+                            _BRASILIA = _dt.timezone(_dt.timedelta(hours=-3))
+                            _dtobj = _dt.datetime.fromisoformat(_raw).replace(tzinfo=_BRASILIA)
+                            _dtutc = _dtobj.astimezone(_dt.timezone.utc)
+                            first_due = _dtutc.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+                            logger.info("firstDueAt sem offset interpretado como Brasília (UTC-3): %s → %s", _raw, first_due)
+                    except (ValueError, TypeError) as _e:
+                        logger.warning("Falha ao parsear firstDueAt '%s': %s. Usando now UTC.", first_due, _e)
                         first_due = __import__("datetime").datetime.utcnow().isoformat() + "Z"
                 recurrence = (dados.get("recurrence") or "once").strip()
                 if recurrence not in ("once", "daily", "every_2_days", "weekly"):
@@ -677,7 +694,7 @@ async def handler_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_T
     texto = update.message.text.strip()
     if not texto:
         return
-    logger.info("Nova mensagem de %s: %r", update.effective_user.username, texto)
+    logger.info("Nova mensagem de %s (chat_id=%s): %r", update.effective_user.username, update.effective_chat.id if update.effective_chat else "?", texto)
     try:
         # Check for pending confirmation first
         pending = memory.get_pending_action()
