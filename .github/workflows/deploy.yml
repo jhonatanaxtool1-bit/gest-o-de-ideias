@@ -25,16 +25,56 @@ jobs:
             set -e
             cd "$DEPLOY_PATH"
             git pull
-            # Criar .env do bot a partir do exemplo se não existir (não está no repo por segurança)
+
+            # ── Garantir .env do bot ────────────────────────────────────────
             BOT_ENV="bot - secretaria da minha vida/.env"
             BOT_EXAMPLE="bot - secretaria da minha vida/.env.example"
             if [ ! -f "$BOT_ENV" ] && [ -f "$BOT_EXAMPLE" ]; then
               cp "$BOT_EXAMPLE" "$BOT_ENV"
-              echo "Criado $BOT_ENV a partir de .env.example. Configure os tokens no servidor e reinicie os containers."
+              echo "AVISO: Criado $BOT_ENV a partir de .env.example. Configure os tokens no servidor."
             fi
-            docker compose down
-            # Remove qualquer container usando portas 4001 ou 8813 (ex: Coolify rodando o mesmo app em paralelo)
-            docker ps --format '{{.ID}} {{.Ports}}' | grep -E ':4001->|:8813->' | awk '{print $1}' | xargs -r docker rm -f 2>/dev/null || true
-            sleep 3
+
+            # ── Parar containers do compose (libera portas gerenciadas) ─────
+            echo ">>> Parando containers do compose..."
+            docker compose down --remove-orphans || true
+
+            # ── Forçar liberação das portas 4001 e 8813 ─────────────────────
+            # Mata QUALQUER container (inclusive externos ao compose) que esteja
+            # usando essas portas – evita o erro "port is already allocated".
+            echo ">>> Verificando portas 4001 e 8813..."
+            for PORT in 4001 8813; do
+              CONTAINERS=$(docker ps --format '{{.ID}} {{.Ports}}' \
+                | grep ":${PORT}->" | awk '{print $1}')
+              if [ -n "$CONTAINERS" ]; then
+                echo "    Porta $PORT ocupada por: $CONTAINERS — removendo..."
+                echo "$CONTAINERS" | xargs docker rm -f 2>/dev/null || true
+              else
+                echo "    Porta $PORT livre."
+              fi
+            done
+
+            # ── Aguardar liberação efetiva das portas ───────────────────────
+            echo ">>> Aguardando portas liberarem..."
+            for PORT in 4001 8813; do
+              TIMEOUT=15
+              ELAPSED=0
+              while ss -tlnp "sport = :${PORT}" 2>/dev/null | grep -q ":${PORT}"; do
+                if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+                  echo "ERRO: Porta $PORT ainda ocupada após ${TIMEOUT}s. Abortando." >&2
+                  exit 1
+                fi
+                sleep 1
+                ELAPSED=$((ELAPSED + 1))
+              done
+              echo "    Porta $PORT confirmada como livre."
+            done
+
+            # ── Build e subida ───────────────────────────────────────────────
+            echo ">>> Buildando imagens..."
             docker compose build --pull
-            docker compose up -d
+
+            echo ">>> Subindo containers..."
+            docker compose up -d --remove-orphans
+
+            echo ">>> Deploy concluído com sucesso!"
+            docker compose ps

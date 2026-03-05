@@ -33,8 +33,37 @@ echo "Buildando frontend (npm ci + npm run build)..."
 echo "Subindo containers..."
 cd "$ROOT_DIR"
 
-echo "Parando e removendo containers antigos (libera portas)..."
-docker compose down
+echo "Parando containers do compose..."
+docker compose down --remove-orphans || true
+
+# Forçar liberação das portas 4001 e 8813
+echo "Verificando portas 4001 e 8813..."
+for PORT in 4001 8813; do
+  CONTAINERS=$(docker ps --format '{{.ID}} {{.Ports}}' \
+    | grep ":${PORT}->" | awk '{print $1}')
+  if [ -n "$CONTAINERS" ]; then
+    echo "  Porta $PORT ocupada — removendo containers: $CONTAINERS"
+    echo "$CONTAINERS" | xargs docker rm -f 2>/dev/null || true
+  else
+    echo "  Porta $PORT livre."
+  fi
+done
+
+# Aguardar liberação das portas
+echo "Aguardando portas liberarem..."
+for PORT in 4001 8813; do
+  TIMEOUT=15
+  ELAPSED=0
+  while ss -tlnp "sport = :${PORT}" 2>/dev/null | grep -q ":${PORT}"; do
+    if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+      echo "ERRO: Porta $PORT ainda ocupada após ${TIMEOUT}s." >&2
+      exit 1
+    fi
+    sleep 1
+    ELAPSED=$((ELAPSED + 1))
+  done
+  echo "  Porta $PORT confirmada livre."
+done
 
 NO_CACHE="${NO_CACHE:-0}"
 NO_DETACH="${NO_DETACH:-0}"
@@ -48,6 +77,9 @@ fi
 if [ "$NO_DETACH" = "1" ]; then
   docker compose up
 else
-  docker compose up -d
+  docker compose up -d --remove-orphans
 fi
+
+echo "Deploy concluído!"
+docker compose ps
 
