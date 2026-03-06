@@ -32,7 +32,7 @@ export function DocumentPage() {
   }, [id, getById, documents])
 
   useEffect(() => {
-    refresh().catch(() => {})
+    refresh().catch(() => { })
   }, [refresh])
 
   const currentDoc = useMemo(() => doc, [doc])
@@ -60,7 +60,7 @@ export function DocumentPage() {
 
   if (id && id !== 'new' && !currentDoc) {
     return (
-      <div className="mx-auto w-full max-w-[840px] px-10 py-12 text-zinc-500">
+      <div className="mx-auto w-full max-w-[840px] px-4 py-8 md:px-10 md:py-12 text-zinc-500">
         Documento não encontrado.
       </div>
     )
@@ -69,7 +69,7 @@ export function DocumentPage() {
   if (!currentDoc) return null
 
   return (
-    <div className="mx-auto w-full max-w-[840px] px-10 py-12">
+    <div className="mx-auto w-full max-w-[840px] px-4 py-8 md:px-10 md:py-12">
       <DocumentEditor
         doc={currentDoc}
         onSave={handleSave}

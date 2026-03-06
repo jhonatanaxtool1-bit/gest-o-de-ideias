@@ -213,10 +213,10 @@ export function LembretesPage() {
 
   return (
     <div className="min-h-full bg-[#191919]">
-      <div className="mx-auto max-w-4xl px-8 py-10">
-        <header className="mb-8">
+      <div className="mx-auto max-w-4xl p-4 md:px-8 md:py-10">
+        <header className="mb-6 md:mb-8">
           <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Lembretes</p>
-          <h1 className="mt-2 text-3xl font-semibold text-zinc-100">Lembretes</h1>
+          <h1 className="mt-2 text-2xl md:text-3xl font-semibold text-zinc-100">Lembretes</h1>
           <p className="mt-2 text-sm text-zinc-400">
             Registre lembretes para hoje ou com recorrência (diário, a cada 2 dias, semanal). O agente pode lançá-los para você.
           </p>

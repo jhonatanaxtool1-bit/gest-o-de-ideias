@@ -165,7 +165,7 @@ export function PersonalPlanningPage() {
 
   return (
     <div className="min-h-full bg-[#191919]">
-      <div className="mx-auto max-w-[1400px] px-8 py-10">
+      <div className="mx-auto max-w-[1400px] p-4 md:px-8 md:py-10">
         <header className="mb-8">
           <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Task management</p>
           <h1 className="mt-2 text-3xl font-semibold text-zinc-100">Planejamento pessoal</h1>
@@ -175,29 +175,26 @@ export function PersonalPlanningPage() {
           <button
             type="button"
             onClick={() => setActiveTab('backlog')}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-              activeTab === 'backlog' ? 'bg-accent/20 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-            }`}
+            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${activeTab === 'backlog' ? 'bg-accent/20 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+              }`}
           >
             Backlog
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('kanban')}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-              activeTab === 'kanban' ? 'bg-accent/20 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-            }`}
+            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${activeTab === 'kanban' ? 'bg-accent/20 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+              }`}
           >
             Kanban
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('finalized')}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-              activeTab === 'finalized'
+            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${activeTab === 'finalized'
                 ? 'bg-accent/20 text-accent'
                 : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-            }`}
+              }`}
           >
             Finalizado
           </button>
@@ -268,9 +265,8 @@ export function PersonalPlanningPage() {
                   onDragOver={(event) => handleDragOver(event, column.id)}
                   onDrop={(event) => handleDrop(event, column.id)}
                   onDragLeave={handleDragLeave}
-                  className={`rounded-xl border bg-zinc-900/80 p-3 transition-colors ${
-                    dragOverColumn === column.id ? 'border-accent/70' : 'border-zinc-800/80'
-                  }`}
+                  className={`rounded-xl border bg-zinc-900/80 p-3 transition-colors ${dragOverColumn === column.id ? 'border-accent/70' : 'border-zinc-800/80'
+                    }`}
                 >
                   <div className="mb-3 flex items-center gap-2">
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${toneClasses[column.tone]}`}>

@@ -130,8 +130,8 @@ export function ListEditPage() {
 
   return (
     <div className="min-h-full bg-surface-950 overflow-auto">
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="mb-6 flex items-center gap-3">
+      <div className="max-w-2xl mx-auto p-4 md:p-6">
+        <div className="mb-4 md:mb-6 flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate('/listas')}
@@ -226,9 +226,8 @@ export function ListEditPage() {
                   <button
                     type="button"
                     onClick={() => handleStartEdit(item)}
-                    className={`flex-1 text-left text-sm truncate ${
-                      item.done ? 'text-zinc-500 line-through' : 'text-zinc-200'
-                    }`}
+                    className={`flex-1 text-left text-sm truncate ${item.done ? 'text-zinc-500 line-through' : 'text-zinc-200'
+                      }`}
                   >
                     {item.label || '(sem texto)'}
                   </button>

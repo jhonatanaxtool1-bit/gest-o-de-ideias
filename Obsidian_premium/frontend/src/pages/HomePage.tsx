@@ -288,8 +288,8 @@ export function HomePage() {
   }, [areas, selectedInterest])
 
   return (
-    <div className="h-full w-full flex">
-      <div className="flex-1 relative bg-surface-950">
+    <div className="h-full w-full flex flex-col md:flex-row">
+      <div className="h-[60vh] md:h-auto flex-1 relative bg-surface-950">
         <GraphControls
           interests={interests}
           areas={areasForSidebar}

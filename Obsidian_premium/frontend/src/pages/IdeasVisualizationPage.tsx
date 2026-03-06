@@ -352,7 +352,7 @@ export function IdeasVisualizationPage() {
         </div>
       )}
 
-      <aside className="absolute right-0 top-0 z-20 h-full w-80 border-l border-zinc-800 bg-surface-900/95 backdrop-blur transition-transform">
+      <aside className="absolute bottom-0 md:bottom-auto md:right-0 md:top-0 z-20 h-[40vh] md:h-full w-full md:w-80 border-t md:border-t-0 md:border-l border-zinc-800 bg-surface-900/95 backdrop-blur transition-transform overflow-y-auto">
         <div className="border-b border-zinc-800 px-5 py-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Painel de Detalhes</h2>
         </div>
@@ -385,11 +385,10 @@ export function IdeasVisualizationPage() {
                   type="button"
                   onClick={toggleSelectedAreaCollapse}
                   disabled={mode !== 'tree'}
-                  className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                    mode === 'tree'
+                  className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors ${mode === 'tree'
                       ? 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700'
                       : 'bg-zinc-900 text-zinc-500 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   {collapsedAreas.has(selectedNode.id) ? 'Expandir area' : 'Colapsar area'}
                 </button>
@@ -408,7 +407,7 @@ export function IdeasVisualizationPage() {
         </div>
       </aside>
 
-      <div className="absolute bottom-5 right-[21rem] z-20 w-56 rounded-xl border border-zinc-700 bg-zinc-900/80 p-2 backdrop-blur">
+      <div className="hidden md:block absolute bottom-5 right-[21rem] z-20 w-56 rounded-xl border border-zinc-700 bg-zinc-900/80 p-2 backdrop-blur">
         <p className="px-1 pb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-400">MiniMap</p>
         <svg className="h-36 w-full rounded-md border border-zinc-800 bg-surface-950" viewBox={minimapViewBox}>
           {layoutResult.links.map((entry) => {
@@ -440,7 +439,7 @@ export function IdeasVisualizationPage() {
         </svg>
       </div>
 
-      <div className="absolute bottom-5 left-5 z-20 rounded-xl border border-zinc-700 bg-zinc-900/75 px-3 py-2 text-xs text-zinc-300 backdrop-blur">
+      <div className="hidden md:block absolute bottom-5 left-5 z-20 rounded-xl border border-zinc-700 bg-zinc-900/75 px-3 py-2 text-xs text-zinc-300 backdrop-blur">
         <p>Nos: {layoutResult.nodes.length}</p>
         <p>Links: {layoutResult.links.length}</p>
         <p>Zoom: {zoomState.k.toFixed(2)}x</p>

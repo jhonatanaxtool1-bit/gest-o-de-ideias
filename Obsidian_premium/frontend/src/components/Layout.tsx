@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
 
 const iconClass = 'h-5 w-5 shrink-0'
@@ -51,7 +52,12 @@ const SidebarIcons = {
 }
 
 export function Layout() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+  }, [location.pathname])
   const isOrganization = location.pathname === '/organizacao'
   const isProfessionalPlanning = location.pathname === '/planejamento-profissional'
   const isPersonalPlanning = location.pathname === '/planejamento-pessoal'
@@ -62,17 +68,51 @@ export function Layout() {
   const isLembretes = location.pathname === '/lembretes'
 
   const linkClass = (active: boolean) =>
-    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-      active ? 'bg-accent/15 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+    `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${active ? 'bg-accent/15 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
     }`
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="w-56 flex-shrink-0 border-r border-zinc-800 bg-surface-900 flex flex-col animate-fade-in">
-        <div className="p-4 border-b border-zinc-800">
+    <div className="flex h-screen overflow-hidden bg-surface-950 flex-col md:flex-row">
+      {/* Mobile Header h-16 roughly */}
+      <div className="md:hidden flex-none flex items-center justify-between p-4 border-b border-zinc-800 bg-surface-900 z-30">
+        <Link to="/" className="text-lg font-semibold text-white tracking-tight">
+          Obsidian Premium
+        </Link>
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 -mr-2 text-zinc-400 hover:text-white"
+        >
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 md:w-56 flex-shrink-0 border-r border-zinc-800 bg-surface-900 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 md:static ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+          }`}
+      >
+        <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
           <Link to="/" className="text-lg font-semibold text-white tracking-tight">
             Obsidian Premium
           </Link>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden p-2 -mr-2 text-zinc-400 hover:text-white"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
           <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-zinc-500">

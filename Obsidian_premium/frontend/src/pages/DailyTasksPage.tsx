@@ -74,7 +74,7 @@ export function DailyTasksPage() {
 
   return (
     <div className="min-h-full bg-[#191919]">
-      <div className="mx-auto max-w-4xl px-8 py-10">
+      <div className="mx-auto max-w-4xl p-4 md:px-8 md:py-10">
         <header className="mb-8">
           <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">Task management</p>
           <h1 className="mt-2 text-3xl font-semibold text-zinc-100">Tarefas Diarias</h1>
@@ -112,31 +112,28 @@ export function DailyTasksPage() {
             <button
               type="button"
               onClick={() => setFilter('all')}
-              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
-                filter === 'all' ? 'bg-accent/20 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-              }`}
+              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${filter === 'all' ? 'bg-accent/20 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                }`}
             >
               Todas ({totalCount})
             </button>
             <button
               type="button"
               onClick={() => setFilter('pending')}
-              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
-                filter === 'pending'
+              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${filter === 'pending'
                   ? 'bg-accent/20 text-accent'
                   : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-              }`}
+                }`}
             >
               Pendentes ({pendingCount})
             </button>
             <button
               type="button"
               onClick={() => setFilter('done')}
-              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
-                filter === 'done'
+              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${filter === 'done'
                   ? 'bg-accent/20 text-accent'
                   : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-              }`}
+                }`}
             >
               Concluidas ({doneCount})
             </button>
@@ -154,28 +151,26 @@ export function DailyTasksPage() {
             filteredTasks.map((task) => (
               <article
                 key={task.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/70 px-4 py-3"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/70 px-4 py-3"
               >
                 <button
                   type="button"
                   onClick={() => handleToggleTask(task.id)}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left w-full sm:w-auto"
                 >
                   <span
-                    className={`h-4 w-4 rounded-full border ${
-                      task.done ? 'border-emerald-400 bg-emerald-400' : 'border-zinc-500'
-                    }`}
+                    className={`h-4 w-4 rounded-full border shrink-0 ${task.done ? 'border-emerald-400 bg-emerald-400' : 'border-zinc-500'
+                      }`}
                   />
                   <span
-                    className={`truncate text-sm ${
-                      task.done ? 'text-zinc-500 line-through' : 'text-zinc-200'
-                    }`}
+                    className={`truncate text-sm ${task.done ? 'text-zinc-500 line-through' : 'text-zinc-200'
+                      }`}
                   >
                     {task.title}
                   </span>
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                   <button
                     type="button"
                     onClick={() => handleToggleTask(task.id)}

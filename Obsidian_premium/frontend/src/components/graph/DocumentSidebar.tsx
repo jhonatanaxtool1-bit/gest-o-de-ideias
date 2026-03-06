@@ -50,7 +50,7 @@ export function DocumentSidebar({
   }
 
   return (
-    <div className="w-72 h-full bg-surface-900 border-l border-zinc-800 flex flex-col">
+    <div className="w-full md:w-72 md:h-full h-[40vh] md:flex-1 bg-surface-900 border-t md:border-t-0 md:border-l border-zinc-800 flex flex-col">
       <div className="p-4 border-b border-zinc-800">
         <h3 className="text-zinc-200 font-semibold text-sm">Ideias por Interesse</h3>
         <p className="text-zinc-500 text-xs mt-1">{documents.length} documentos organizados</p>

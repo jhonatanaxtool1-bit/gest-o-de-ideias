@@ -60,22 +60,20 @@ function ImageModal({ isOpen, currentUrl, onClose, onSaveUrl, onUpload }: ImageM
           <button
             type="button"
             onClick={() => setActiveTab('url')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'url'
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'url'
                 ? 'bg-accent text-white'
                 : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
-            }`}
+              }`}
           >
             Link da Imagem
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('upload')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'upload'
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'upload'
                 ? 'bg-accent text-white'
                 : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
-            }`}
+              }`}
           >
             Upload de Arquivo
           </button>
@@ -419,8 +417,8 @@ export function IdeaEditorPage() {
       <div className="w-full max-w-none md:max-w-3xl md:mx-auto lg:max-w-4xl">
         {/* Header com opções de metadados */}
         <div className="sticky top-0 z-20 bg-surface-950/95 backdrop-blur-sm border-b border-zinc-800/50">
-          <div className="flex items-center justify-between px-4 md:px-6 py-3">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between px-4 md:px-6 py-3 gap-3 md:gap-0">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={handleBack}
@@ -501,7 +499,7 @@ export function IdeaEditorPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 md:justify-end">
               {!isNew && (
                 <button
                   type="button"
@@ -595,9 +593,9 @@ export function IdeaEditorPage() {
                     <button
                       type="button"
                       onClick={() => {
-                      setCover('')
-                      setHasChanges(true)
-                    }}
+                        setCover('')
+                        setHasChanges(true)
+                      }}
                       className="absolute top-1 right-1 p-1 rounded bg-black/50 text-white hover:bg-black/70 transition-colors"
                     >
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -675,9 +673,9 @@ export function IdeaEditorPage() {
               type="text"
               value={title}
               onChange={(e) => {
-              setTitle(e.target.value)
-              setHasChanges(true)
-            }}
+                setTitle(e.target.value)
+                setHasChanges(true)
+              }}
               placeholder="Título da ideia..."
               className="
                 w-full bg-transparent border-none
