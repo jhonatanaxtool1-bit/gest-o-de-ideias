@@ -3,6 +3,8 @@ services:
     build:
       context: ./Obsidian_premium/backend
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - "4001:4000"
     environment:

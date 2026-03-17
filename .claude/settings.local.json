@@ -6,7 +6,10 @@
       "Read(//tmp/**)",
       "Bash(npm install:*)",
       "Bash(find 'c:\\\\trabalho\\\\projeto\\\\python\\\\projeto_web\\\\gestão de ideias\\\\Obsidian_premium\\\\backend' -type f -name *list*)",
-      "Bash(grep -r \"lists\\\\|listas\" 'c:\\\\trabalho\\\\projeto\\\\python\\\\projeto_web\\\\gestão de ideias\\\\Obsidian_premium\\\\backend' --include=*.js --include=*.json)"
+      "Bash(grep -r \"lists\\\\|listas\" 'c:\\\\trabalho\\\\projeto\\\\python\\\\projeto_web\\\\gestão de ideias\\\\Obsidian_premium\\\\backend' --include=*.js --include=*.json)",
+      "Bash(docker exec:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker-compose up:*)"
     ]
   }
 }
