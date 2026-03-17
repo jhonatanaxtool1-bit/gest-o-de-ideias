@@ -41,14 +41,14 @@ export function GraphControls({
   return (
     <div className="
       absolute top-4 left-4 right-4 z-10
-      flex items-center gap-3
-      p-3 rounded-xl
+      flex flex-wrap items-center gap-2
+      p-2 rounded-xl
       bg-surface-900/90 backdrop-blur-md
       border border-zinc-800
       shadow-lg shadow-black/20
     ">
       <div className={`
-        flex-1 max-w-md relative
+        flex-1 min-w-[140px] relative
         transition-all duration-200
         ${isSearchFocused ? 'ring-2 ring-accent/30 rounded-lg' : ''}
       `}>
@@ -84,7 +84,7 @@ export function GraphControls({
         )}
       </div>
 
-      <div className="h-6 w-px bg-zinc-700 mx-1" />
+      <div className="hidden md:block h-6 w-px bg-zinc-700 mx-1" />
 
       <select
         value={selectedInterest || ''}
@@ -95,7 +95,7 @@ export function GraphControls({
           text-zinc-300 text-sm
           focus:outline-none focus:border-zinc-600
           cursor-pointer
-          min-w-[140px]
+          flex-1 md:flex-none md:min-w-[140px]
         "
       >
         <option value="">Todos interesses</option>
@@ -109,6 +109,7 @@ export function GraphControls({
         onChange={(e) => onAreaChange(e.target.value || null)}
         disabled={!selectedInterest}
         className="
+          hidden md:block
           h-9 px-3 rounded-lg
           bg-zinc-800/50 border border-zinc-700/50
           text-zinc-300 text-sm
@@ -124,12 +125,13 @@ export function GraphControls({
         ))}
       </select>
 
-      <div className="h-6 w-px bg-zinc-700 mx-1" />
+      <div className="hidden md:block h-6 w-px bg-zinc-700 mx-1" />
 
       <button
         onClick={onToggleRelations}
         className={`
-          h-9 px-3 rounded-lg flex items-center gap-2
+          hidden md:flex
+          h-9 px-3 rounded-lg items-center gap-2
           text-sm font-medium
           transition-colors
           ${showRelations
@@ -147,7 +149,8 @@ export function GraphControls({
       <button
         onClick={onExpandAll}
         className="
-          h-9 px-3 rounded-lg flex items-center gap-2
+          hidden md:flex
+          h-9 px-3 rounded-lg items-center gap-2
           bg-zinc-800/50 border border-zinc-700/50
           text-zinc-400 text-sm
           hover:text-zinc-300 hover:bg-zinc-700/50
@@ -163,7 +166,8 @@ export function GraphControls({
       <button
         onClick={onCollapseAll}
         className="
-          h-9 px-3 rounded-lg flex items-center gap-2
+          hidden md:flex
+          h-9 px-3 rounded-lg items-center gap-2
           bg-zinc-800/50 border border-zinc-700/50
           text-zinc-400 text-sm
           hover:text-zinc-300 hover:bg-zinc-700/50
@@ -190,7 +194,7 @@ export function GraphControls({
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          <span>Limpar</span>
+          <span className="hidden sm:inline">Limpar</span>
         </button>
       )}
     </div>

@@ -546,7 +546,7 @@ export function IdeaEditorPage() {
           {/* Painel de metadados expansível */}
           {showMetadata && (
             <div className="px-4 md:px-6 py-4 border-t border-zinc-800/50 bg-surface-900/30">
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-zinc-500 mb-1.5">Interesse</label>
                   <select
@@ -679,14 +679,14 @@ export function IdeaEditorPage() {
               placeholder="Título da ideia..."
               className="
                 w-full bg-transparent border-none
-                text-4xl font-bold text-zinc-100 placeholder:text-zinc-700
+                text-2xl md:text-4xl font-bold text-zinc-100 placeholder:text-zinc-700
                 focus:outline-none focus:ring-0
               "
             />
           </div>
 
           {/* Dicas de atalhos */}
-          <div className="flex items-center gap-4 mb-6 text-zinc-600 text-xs">
+          <div className="hidden md:flex items-center gap-4 mb-6 text-zinc-600 text-xs">
             <span className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 font-mono text-zinc-500">#</kbd>
               <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 font-mono text-zinc-500">##</kbd>

@@ -87,8 +87,8 @@ function IdeaCard({ document, onEdit, onDelete }: IdeaCardProps) {
           </div>
         )}
 
-        {/* Overlay com ações no hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+        {/* Overlay com ações no hover - visível apenas no desktop */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors hidden md:flex items-center justify-center gap-2 md:opacity-0 md:group-hover:opacity-100">
           <button
             type="button"
             onClick={() => onEdit(document.id)}
@@ -119,6 +119,24 @@ function IdeaCard({ document, onEdit, onDelete }: IdeaCardProps) {
             )}
           </div>
         )}
+
+        {/* Botões de ação visíveis em mobile */}
+        <div className="flex md:hidden items-center gap-2 mt-3 pt-2 border-t border-zinc-700/50">
+          <button
+            type="button"
+            onClick={() => onEdit(document.id)}
+            className="flex-1 py-1.5 rounded-lg bg-zinc-700/50 text-zinc-200 text-xs font-medium hover:bg-zinc-700 transition-colors"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(document)}
+            className="flex-1 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors"
+          >
+            Excluir
+          </button>
+        </div>
       </div>
     </div>
   )

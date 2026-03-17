@@ -257,8 +257,8 @@ export function ProfessionalPlanningPage() {
             )}
           </section>
         ) : activeTab === 'kanban' ? (
-          <section className="overflow-x-auto pb-4">
-            <div className="grid min-w-[740px] grid-cols-3 gap-4">
+          <section className="pb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {orderedColumns.map((column) => (
                 <article
                   key={column.id}
@@ -314,9 +314,38 @@ export function ProfessionalPlanningPage() {
                               Finalizar
                             </button>
                           ) : (
-                            <span className="rounded-md border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-[10px] text-zinc-300">
-                              Arraste para mover
-                            </span>
+                            <>
+                              <span className="hidden md:inline rounded-md border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-[10px] text-zinc-300">
+                                Arraste para mover
+                              </span>
+                              {column.id === 'todo' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveStatus(card, 'doing')}
+                                  className="md:hidden rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-300 transition-colors"
+                                >
+                                  → Em andamento
+                                </button>
+                              )}
+                              {column.id === 'doing' && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveStatus(card, 'todo')}
+                                    className="md:hidden rounded-md border border-zinc-600 bg-zinc-800/50 px-1.5 py-0.5 text-[10px] text-zinc-300 transition-colors"
+                                  >
+                                    ← A fazer
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveStatus(card, 'done')}
+                                    className="md:hidden rounded-md border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-300 transition-colors"
+                                  >
+                                    → Concluído
+                                  </button>
+                                </>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>

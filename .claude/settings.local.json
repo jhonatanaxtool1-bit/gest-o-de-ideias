@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?|css|scss\\)$\")",
+      "Bash(/tmp/project_structure.txt:*)",
+      "Read(//tmp/**)"
+    ]
+  }
+}
