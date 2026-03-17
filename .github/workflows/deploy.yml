@@ -1,6 +1,7 @@
 # Deploy automático na VPS via SSH (push em main/master).
-# Secrets obrigatórios no repositório: VPS_HOST, VPS_USER, VPS_SSH_KEY, DEPLOY_PATH.
-# Opcional: VPS_PORT (padrão 22).
+# Secrets obrigatórios: VPS_HOST, VPS_USER, VPS_SSH_KEY, DEPLOY_PATH,
+#                        BOT_TELEGRAM_TOKEN, BOT_OPENROUTER_KEY.
+# Secrets opcionais: VPS_PORT (padrão 22), BOT_NOTION_TOKEN, BOT_ALLOWED_USERS.
 name: Deploy to VPS
 
 on:
@@ -12,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      BOT_TELEGRAM_TOKEN: ${{ secrets.BOT_TELEGRAM_TOKEN }}
+      BOT_OPENROUTER_KEY: ${{ secrets.BOT_OPENROUTER_KEY }}
+      BOT_NOTION_TOKEN: ${{ secrets.BOT_NOTION_TOKEN }}
+      BOT_ALLOWED_USERS: ${{ secrets.BOT_ALLOWED_USERS }}
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -20,7 +25,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || '22' }}
-          envs: DEPLOY_PATH
+          envs: DEPLOY_PATH,BOT_TELEGRAM_TOKEN,BOT_OPENROUTER_KEY,BOT_NOTION_TOKEN,BOT_ALLOWED_USERS
           script: |
             set -e
             cd "$DEPLOY_PATH"
@@ -29,41 +34,34 @@ jobs:
             export COMPOSE_PROJECT_NAME=gest-o-de-ideias
             git pull
 
-            # ── Garantir .env do bot ────────────────────────────────────────
+            # ── Escrever .env do bot a partir dos GitHub Secrets ────────────
             BOT_ENV="bot - secretaria da minha vida/.env"
-            BOT_EXAMPLE="bot - secretaria da minha vida/.env.example"
 
-            # Se .env nao existe, tenta criar a partir do .env.example
-            if [ ! -f "$BOT_ENV" ]; then
-              if [ -f "$BOT_EXAMPLE" ]; then
-                cp "$BOT_EXAMPLE" "$BOT_ENV"
-                echo "AVISO: .env nao encontrado. Criado a partir de .env.example."
-                echo "       Preencha os tokens em: $BOT_ENV"
-              else
-                echo "ERRO: Nem .env nem .env.example encontrados em: $BOT_ENV" >&2
-                exit 1
-              fi
-            else
-              echo ".env do bot encontrado. Usando existente."
+            # Validar secrets obrigatorios antes de qualquer coisa
+            if [ -z "$BOT_TELEGRAM_TOKEN" ]; then
+              echo "ERRO: Secret BOT_TELEGRAM_TOKEN nao configurado no GitHub." >&2
+              echo "      Va em Settings > Secrets > Actions e adicione o secret." >&2
+              exit 1
+            fi
+            if [ -z "$BOT_OPENROUTER_KEY" ]; then
+              echo "ERRO: Secret BOT_OPENROUTER_KEY nao configurado no GitHub." >&2
+              echo "      Va em Settings > Secrets > Actions e adicione o secret." >&2
+              exit 1
             fi
 
-            # Verificar se tokens obrigatorios estao preenchidos
-            check_var() {
-              VAL=$(grep -E "^${1}=" "$BOT_ENV" | cut -d= -f2- | tr -d '[:space:]')
-              if [ -z "$VAL" ]; then
-                echo "================================================================" >&2
-                echo "  ERRO: $1 esta vazio no $BOT_ENV"                             >&2
-                echo "  Preencha o token real no servidor e faca o deploy novamente." >&2
-                echo "================================================================" >&2
-                exit 1
-              fi
-              PREVIEW=$(echo "$VAL" | cut -c1-8)
-              echo "  $1 = ${PREVIEW}... (OK)"
-            }
-            echo ">>> Verificando tokens no .env do bot..."
-            check_var TELEGRAM_BOT_TOKEN
-            check_var OPENROUTER_API_KEY
-            echo ".env do bot OK - todos os tokens presentes."
+            echo ">>> Escrevendo .env do bot a partir dos GitHub Secrets..."
+            printf 'TELEGRAM_BOT_TOKEN=%s\n' "$BOT_TELEGRAM_TOKEN"   > "$BOT_ENV"
+            printf 'OPENROUTER_API_KEY=%s\n' "$BOT_OPENROUTER_KEY"  >> "$BOT_ENV"
+            printf 'NOTION_TOKEN=%s\n'        "$BOT_NOTION_TOKEN"    >> "$BOT_ENV"
+            printf 'OBSIDIAN_API_BASE_URL=http://backend:4000\n'     >> "$BOT_ENV"
+            printf 'APP_BASE_URL=http://%s:8813\n' "$(hostname -I | awk '{print $1}')" >> "$BOT_ENV"
+            printf 'OPENROUTER_MODEL=meta-llama/llama-3-8b-instruct\n' >> "$BOT_ENV"
+            printf 'ALLOWED_TELEGRAM_USERS=%s\n' "$BOT_ALLOWED_USERS" >> "$BOT_ENV"
+
+            echo "  TELEGRAM_BOT_TOKEN = $(echo "$BOT_TELEGRAM_TOKEN" | cut -c1-8)... (OK)"
+            echo "  OPENROUTER_API_KEY = $(echo "$BOT_OPENROUTER_KEY" | cut -c1-8)... (OK)"
+            [ -n "$BOT_NOTION_TOKEN" ] && echo "  NOTION_TOKEN = $(echo "$BOT_NOTION_TOKEN" | cut -c1-8)... (OK)" || echo "  NOTION_TOKEN = (nao configurado)"
+            echo ".env do bot escrito com sucesso."
 
             # ── Remover container e imagem antiga do bot (build limpo) ───────
             echo ">>> Removendo container e imagem do bot (build limpo a cada deploy)..."
