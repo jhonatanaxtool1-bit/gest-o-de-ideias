@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext'
 import { Layout } from '@/components/Layout'
 import { DocumentPage } from '@/pages/DocumentPage'
 import { HomePage } from '@/pages/HomePage'
@@ -9,23 +10,33 @@ import { ProfessionalPlanningPage } from '@/pages/ProfessionalPlanningPage'
 import { PersonalPlanningPage } from '@/pages/PersonalPlanningPage'
 import { DailyTasksPage } from '@/pages/DailyTasksPage'
 import { IdeasVisualizationPage } from '@/pages/IdeasVisualizationPage'
-import { ListasPage } from '@/pages/ListasPage'
-import { ListNewPage } from '@/pages/ListNewPage'
-import { ListEditPage } from '@/pages/ListEditPage'
 import { LembretesPage } from '@/pages/LembretesPage'
+import { LoginPage } from '@/pages/LoginPage'
+
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth()
+  if (isLoading) return null
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
 
 function App() {
   return (
     <div className="min-h-screen bg-surface-950">
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <RequireAuth>
+              <Layout />
+            </RequireAuth>
+          }
+        >
           <Route index element={<HomePage />} />
           <Route path="organizacao" element={<OrganizationPage />} />
           <Route path="ideias" element={<IdeasPage />} />
           <Route path="visualizacao-ideias" element={<IdeasVisualizationPage />} />
-          <Route path="listas" element={<ListasPage />} />
-          <Route path="lista/new" element={<ListNewPage />} />
-          <Route path="lista/:id" element={<ListEditPage />} />
           <Route path="tarefas-diarias" element={<DailyTasksPage />} />
           <Route path="planejamento-profissional" element={<ProfessionalPlanningPage />} />
           <Route path="planejamento-pessoal" element={<PersonalPlanningPage />} />

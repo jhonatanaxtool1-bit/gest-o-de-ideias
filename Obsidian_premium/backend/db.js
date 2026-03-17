@@ -72,35 +72,6 @@ function createDb(dbPath) {
     )
     .run()
 
-  // lists (checklists, any type)
-  db
-    .prepare(
-      `CREATE TABLE IF NOT EXISTS lists (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        listType TEXT NOT NULL DEFAULT 'geral',
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL
-      );`
-    )
-    .run()
-
-  db
-    .prepare(
-      `CREATE TABLE IF NOT EXISTS list_items (
-        id TEXT PRIMARY KEY,
-        listId TEXT NOT NULL,
-        label TEXT NOT NULL,
-        "order" INTEGER NOT NULL DEFAULT 0,
-        done INTEGER NOT NULL DEFAULT 0,
-        createdAt TEXT NOT NULL,
-        FOREIGN KEY (listId) REFERENCES lists(id) ON DELETE CASCADE
-      );`
-    )
-    .run()
-
-  db.prepare('CREATE INDEX IF NOT EXISTS idx_list_items_listId ON list_items(listId)').run()
-
   // reminders: title, body (optional), firstDueAt (ISO), recurrence, lastTriggeredAt (for recurring)
   db
     .prepare(

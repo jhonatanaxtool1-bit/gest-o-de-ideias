@@ -1,3 +1,5 @@
+import { authFetch } from './authFetch'
+
 export type ReminderRecurrence = 'once' | 'daily' | 'every_2_days' | 'weekly'
 
 export type Reminder = {
@@ -49,17 +51,17 @@ function url(path: string): string {
 }
 
 export async function fetchRemindersApi(): Promise<Reminder[]> {
-  const res = await fetch(url(''))
+  const res = await authFetch(url(''))
   return (await handleResponse(res)) as Reminder[]
 }
 
 export async function fetchReminderApi(id: string): Promise<Reminder> {
-  const res = await fetch(url(`/${encodeURIComponent(id)}`))
+  const res = await authFetch(url(`/${encodeURIComponent(id)}`))
   return (await handleResponse(res)) as Reminder
 }
 
 export async function createReminderApi(input: ReminderCreateInput): Promise<Reminder> {
-  const res = await fetch(url(''), {
+  const res = await authFetch(url(''), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -73,7 +75,7 @@ export async function createReminderApi(input: ReminderCreateInput): Promise<Rem
 }
 
 export async function updateReminderApi(id: string, payload: ReminderUpdateInput): Promise<Reminder> {
-  const res = await fetch(url(`/${encodeURIComponent(id)}`), {
+  const res = await authFetch(url(`/${encodeURIComponent(id)}`), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -82,7 +84,7 @@ export async function updateReminderApi(id: string, payload: ReminderUpdateInput
 }
 
 export async function deleteReminderApi(id: string): Promise<void> {
-  const res = await fetch(url(`/${encodeURIComponent(id)}`), { method: 'DELETE' })
+  const res = await authFetch(url(`/${encodeURIComponent(id)}`), { method: 'DELETE' })
   await handleResponse(res)
 }
 

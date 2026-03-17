@@ -70,3 +70,6 @@ def _parse_allowed_users() -> list[str]:
     return [u.strip().lstrip("@") for u in raw.split(",") if u.strip()]
 
 ALLOWED_TELEGRAM_USERS = _parse_allowed_users()
+
+# Chave de autenticação para a API do backend Obsidian_premium (header: Authorization: ApiKey <key>)
+BOT_API_KEY = os.getenv("BOT_API_KEY", "").strip()

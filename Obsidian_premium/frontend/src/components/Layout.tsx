@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation, Outlet } from 'react-router-dom'
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext'
 
 const iconClass = 'h-5 w-5 shrink-0'
 
@@ -14,11 +15,6 @@ const SidebarIcons = {
     <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
       <path d="M12 8v8M8 12h8" />
-    </svg>
-  ),
-  lista: (
-    <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
     </svg>
   ),
   tarefas: (
@@ -54,6 +50,8 @@ const SidebarIcons = {
 export function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { logout } = useAuth()
 
   useEffect(() => {
     setIsMobileMenuOpen(false)
@@ -64,7 +62,6 @@ export function Layout() {
   const isDailyTasks = location.pathname === '/tarefas-diarias'
   const isIdeasVisualization = location.pathname === '/visualizacao-ideias'
   const isIdeiaNew = location.pathname === '/ideia/new'
-  const isListas = location.pathname === '/listas' || location.pathname.startsWith('/lista/')
   const isLembretes = location.pathname === '/lembretes'
 
   const linkClass = (active: boolean) =>
@@ -114,7 +111,7 @@ export function Layout() {
             </svg>
           </button>
         </div>
-        <nav className="flex-1 p-3 space-y-0.5">
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           <p className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-zinc-500">
             Segundo Cérebro
           </p>
@@ -125,10 +122,6 @@ export function Layout() {
           <Link to="/ideia/new" className={linkClass(isIdeiaNew)}>
             {SidebarIcons.ideia}
             Criar ideia
-          </Link>
-          <Link to="/listas" className={linkClass(isListas)}>
-            {SidebarIcons.lista}
-            Criar lista
           </Link>
           <Link to="/tarefas-diarias" className={linkClass(isDailyTasks)}>
             {SidebarIcons.tarefas}
@@ -156,6 +149,19 @@ export function Layout() {
             </Link>
           </div>
         </nav>
+        <div className="p-3 border-t border-zinc-800">
+          <button
+            onClick={() => { logout(); navigate('/login', { replace: true }) }}
+            className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+          >
+            <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sair
+          </button>
+        </div>
       </aside>
       <main className="flex-1 min-h-0 overflow-auto">
         <Outlet />

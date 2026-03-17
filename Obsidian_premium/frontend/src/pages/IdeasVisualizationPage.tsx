@@ -42,6 +42,30 @@ export function IdeasVisualizationPage() {
   const [dragVersion, setDragVersion] = useState(0)
   const previousPositionRef = useRef(new Map<string, { x: number; y: number }>())
   const manualPositionsRef = useRef(new Map<string, { x: number; y: number }>())
+  const modeRef = useRef<ViewMode>(mode)
+
+  const CLUSTER_POSITIONS_KEY = 'idea-cluster-positions'
+
+  useEffect(() => {
+    modeRef.current = mode
+  }, [mode])
+
+  useEffect(() => {
+    manualPositionsRef.current.clear()
+    if (mode === 'cluster') {
+      try {
+        const saved = localStorage.getItem(CLUSTER_POSITIONS_KEY)
+        if (saved) {
+          const entries = JSON.parse(saved) as Array<[string, { x: number; y: number }]>
+          for (const [id, pos] of entries) {
+            manualPositionsRef.current.set(id, pos)
+          }
+        }
+      } catch {
+        // ignore corrupt data
+      }
+    }
+  }, [mode])
 
   const graphData = useMemo(() => {
     return buildIdeaGraphData({
@@ -70,7 +94,7 @@ export function IdeasVisualizationPage() {
     }
 
     const nodes = result.nodes.map((entry) => {
-      if (mode === 'force') {
+      if (mode === 'force' || mode === 'cluster') {
         const override = manualPositionsRef.current.get(entry.id)
         if (override) {
           return { ...entry, x: override.x, y: override.y }
@@ -274,7 +298,19 @@ export function IdeasVisualizationPage() {
           .attr('x2', (linkEntry) => (nodeById.get(linkEntry.target)?.id === entry.id ? x : (nodeById.get(linkEntry.target)?.x ?? 0)))
           .attr('y2', (linkEntry) => (nodeById.get(linkEntry.target)?.id === entry.id ? y : (nodeById.get(linkEntry.target)?.y ?? 0)))
       })
-      .on('end', () => setDragVersion((value) => value + 1))
+      .on('end', () => {
+        if (modeRef.current === 'cluster') {
+          try {
+            localStorage.setItem(
+              CLUSTER_POSITIONS_KEY,
+              JSON.stringify([...manualPositionsRef.current.entries()])
+            )
+          } catch {
+            // ignore
+          }
+        }
+        setDragVersion((value) => value + 1)
+      })
 
     mergedNodes.call(dragBehavior)
 

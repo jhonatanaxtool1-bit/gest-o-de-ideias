@@ -9,6 +9,11 @@ services:
       - NODE_ENV=production
       - PORT=4000
       - SQLITE_PATH=/app/data/data.sqlite
+      - AUTH_USERNAME=${AUTH_USERNAME:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - BOT_API_KEY=${BOT_API_KEY}
     volumes:
       - backend_data:/app/data
     restart: unless-stopped

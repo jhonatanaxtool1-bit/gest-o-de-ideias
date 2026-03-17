@@ -1,4 +1,5 @@
 import type { Interest, Area } from '@/modules/organization/types'
+import { authFetch } from './authFetch'
 
 const INTERESTS = '/api/interests'
 const AREAS = '/api/areas'
@@ -13,12 +14,12 @@ async function handleResponse(res: Response) {
 }
 
 export async function fetchInterests(): Promise<Interest[]> {
-  const res = await fetch(INTERESTS)
+  const res = await authFetch(INTERESTS)
   return (await handleResponse(res)) as Interest[]
 }
 
 export async function createInterestApi(i: Interest): Promise<Interest> {
-  const res = await fetch(INTERESTS, {
+  const res = await authFetch(INTERESTS, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(i),
@@ -27,7 +28,7 @@ export async function createInterestApi(i: Interest): Promise<Interest> {
 }
 
 export async function updateInterestApi(id: string, name: string): Promise<Interest> {
-  const res = await fetch(`${INTERESTS}/${encodeURIComponent(id)}`, {
+  const res = await authFetch(`${INTERESTS}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
@@ -36,17 +37,17 @@ export async function updateInterestApi(id: string, name: string): Promise<Inter
 }
 
 export async function deleteInterestApi(id: string): Promise<void> {
-  const res = await fetch(`${INTERESTS}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  const res = await authFetch(`${INTERESTS}/${encodeURIComponent(id)}`, { method: 'DELETE' })
   await handleResponse(res)
 }
 
 export async function fetchAreas(): Promise<Area[]> {
-  const res = await fetch(AREAS)
+  const res = await authFetch(AREAS)
   return (await handleResponse(res)) as Area[]
 }
 
 export async function createAreaApi(a: Area): Promise<Area> {
-  const res = await fetch(AREAS, {
+  const res = await authFetch(AREAS, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(a),
@@ -55,7 +56,7 @@ export async function createAreaApi(a: Area): Promise<Area> {
 }
 
 export async function updateAreaApi(id: string, name: string): Promise<Area> {
-  const res = await fetch(`${AREAS}/${encodeURIComponent(id)}`, {
+  const res = await authFetch(`${AREAS}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
@@ -64,7 +65,7 @@ export async function updateAreaApi(id: string, name: string): Promise<Area> {
 }
 
 export async function deleteAreaApi(id: string): Promise<void> {
-  const res = await fetch(`${AREAS}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  const res = await authFetch(`${AREAS}/${encodeURIComponent(id)}`, { method: 'DELETE' })
   await handleResponse(res)
 }
 

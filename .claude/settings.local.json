@@ -3,7 +3,10 @@
     "allow": [
       "Bash(grep -E \"\\\\.\\(tsx?|jsx?|css|scss\\)$\")",
       "Bash(/tmp/project_structure.txt:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(npm install:*)",
+      "Bash(find 'c:\\\\trabalho\\\\projeto\\\\python\\\\projeto_web\\\\gestão de ideias\\\\Obsidian_premium\\\\backend' -type f -name *list*)",
+      "Bash(grep -r \"lists\\\\|listas\" 'c:\\\\trabalho\\\\projeto\\\\python\\\\projeto_web\\\\gestão de ideias\\\\Obsidian_premium\\\\backend' --include=*.js --include=*.json)"
     ]
   }
 }

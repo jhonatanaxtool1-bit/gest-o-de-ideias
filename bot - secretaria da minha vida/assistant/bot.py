@@ -406,19 +406,6 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                     resposta = f"{resposta}\n\n✅ Tarefa de planejamento pessoal atualizada."
                 else:
                     resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
-        elif acao == "criar_lista" and dados:
-            title = (dados.get("titulo") or dados.get("title") or "").strip() or "Sem título"
-            corrigido = llm.corrigir_titulo_resumo(title)
-            if corrigido:
-                title = corrigido["titulo"] or title
-            list_type = (dados.get("listType") or dados.get("list_type") or "geral").strip() or "geral"
-            items = dados.get("itens") or dados.get("items") or []
-            lst = obsidian_service.criar_lista(title=title, list_type=list_type, items=items)
-            n = len(lst.get("items", []))
-            resposta = f"{resposta}\n\n✅ Lista criada: {title} ({list_type}). {n} item(ns) adicionado(s)."
-            url = _link(f"lista/{lst.get('id')}") if lst.get("id") else ""
-            if url:
-                resposta += f"\n\n🔗 {url}"
         elif acao == "atualizar_ideia" and dados:
             doc_id = (dados.get("id") or "").strip()
             if not doc_id:
@@ -515,58 +502,6 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
             except requests.RequestException as e:
                 logger.warning("Erro ao buscar/enviar lembretes: %s", e)
                 resposta = f"{resposta}\n\n⚠️ Não foi possível verificar lembretes (servidor)."
-        elif acao == "atualizar_lista" and dados:
-            list_id = (dados.get("id") or "").strip()
-            if not list_id:
-                resposta = f"{resposta}\n\n⚠️ Não foi possível atualizar: informe o id da lista."
-            else:
-                item_id = (dados.get("itemId") or dados.get("item_id") or "").strip()
-                if item_id and ("done" in dados or "label" in dados):
-                    kwargs = {}
-                    if "done" in dados:
-                        kwargs["done"] = bool(dados["done"])
-                    if "label" in dados:
-                        kwargs["label"] = (dados.get("label") or "").strip()
-                    if kwargs:
-                        obsidian_service.atualizar_item_lista(list_id, item_id, **kwargs)
-                        resposta = f"{resposta}\n\n✅ Item da lista atualizado."
-                else:
-                    payload = {}
-                    if "titulo" in dados:
-                        payload["title"] = (dados.get("titulo") or "").strip()
-                    if "listType" in dados or "list_type" in dados:
-                        payload["listType"] = (dados.get("listType") or dados.get("list_type") or "geral").strip()
-                    if "itens" in dados or "items" in dados:
-                        raw = dados.get("itens") or dados.get("items") or []
-                        if isinstance(raw, list) and raw:
-                            now = __import__("datetime").datetime.utcnow().isoformat()
-                            items = []
-                            for i, it in enumerate(raw):
-                                if isinstance(it, dict):
-                                    iid = it.get("id") or __import__("uuid").uuid4()
-                                    items.append({
-                                        "id": str(iid) if iid else str(__import__("uuid").uuid4()),
-                                        "listId": list_id,
-                                        "label": (it.get("label") or "").strip() or "(item)",
-                                        "order": it.get("order", i),
-                                        "done": bool(it.get("done", False)),
-                                        "createdAt": it.get("createdAt") or now,
-                                    })
-                                elif isinstance(it, str):
-                                    items.append({
-                                        "id": str(__import__("uuid").uuid4()),
-                                        "listId": list_id,
-                                        "label": (it or "").strip() or "(item)",
-                                        "order": i,
-                                        "done": False,
-                                        "createdAt": now,
-                                    })
-                            payload["items"] = items
-                    if payload:
-                        obsidian_service.atualizar_lista(list_id, payload)
-                        resposta = f"{resposta}\n\n✅ Lista atualizada."
-                    else:
-                        resposta = f"{resposta}\n\n⚠️ Nenhum campo para atualizar informado."
         elif acao == "listar_planejamentos_empresariais":
             try:
                 cards = obsidian_service.listar_cards_planejamento()
@@ -611,20 +546,6 @@ async def _processar_texto_e_responder(texto: str, update: Update, context: Cont
                     resposta = f"{resposta}\n\n" + "\n".join(linhas)
             except requests.RequestException:
                 resposta = f"{resposta}\n\n⚠️ Erro ao buscar lembretes."
-        elif acao == "listar_listas":
-            try:
-                listas = obsidian_service.listar_listas()
-                if not listas:
-                    resposta = f"{resposta}\n\nNenhuma lista cadastrada."
-                else:
-                    linhas = [f"📋 Suas Listas ({len(listas)}):"]
-                    for lst in listas:
-                        items = lst.get("items", [])
-                        pendentes = len([i for i in items if not i.get("done")])
-                        linhas.append(f"• {lst.get('title', 'Sem título')} ({pendentes}/{len(items)} pendentes)")
-                    resposta = f"{resposta}\n\n" + "\n".join(linhas)
-            except requests.RequestException:
-                resposta = f"{resposta}\n\n⚠️ Erro ao buscar listas."
         elif acao == "listar_categorias":
             try:
                 interesses = obsidian_service.listar_interesses()

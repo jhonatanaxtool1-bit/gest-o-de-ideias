@@ -1,3 +1,5 @@
+import { authFetch } from './authFetch'
+
 export type DailyTask = {
   id: string
   title: string
@@ -24,12 +26,12 @@ async function handleResponse(res: Response) {
 }
 
 export async function fetchDailyTasksApi(): Promise<DailyTask[]> {
-  const res = await fetch(BASE)
+  const res = await authFetch(BASE)
   return (await handleResponse(res)) as DailyTask[]
 }
 
 export async function createDailyTaskApi(task: DailyTask): Promise<DailyTask> {
-  const res = await fetch(BASE, {
+  const res = await authFetch(BASE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(task),
@@ -38,7 +40,7 @@ export async function createDailyTaskApi(task: DailyTask): Promise<DailyTask> {
 }
 
 export async function updateDailyTaskApi(id: string, payload: Partial<DailyTask>): Promise<DailyTask> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(id)}`, {
+  const res = await authFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -47,6 +49,6 @@ export async function updateDailyTaskApi(id: string, payload: Partial<DailyTask>
 }
 
 export async function deleteDailyTaskApi(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  const res = await authFetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' })
   await handleResponse(res)
 }

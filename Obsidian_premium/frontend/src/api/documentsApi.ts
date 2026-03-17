@@ -1,4 +1,5 @@
 import type { Document } from '@/modules/documents/types'
+import { authFetch } from './authFetch'
 
 const BASE = '/api/documents'
 
@@ -12,17 +13,17 @@ async function handleResponse(res: Response) {
 }
 
 export async function fetchDocuments(): Promise<Document[]> {
-  const res = await fetch(BASE)
+  const res = await authFetch(BASE)
   return (await handleResponse(res)) as Document[]
 }
 
 export async function fetchDocumentById(id: string): Promise<Document | null> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(id)}`)
+  const res = await authFetch(`${BASE}/${encodeURIComponent(id)}`)
   return (await handleResponse(res)) as Document
 }
 
 export async function createDocumentApi(doc: Document): Promise<Document> {
-  const res = await fetch(BASE, {
+  const res = await authFetch(BASE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(doc),
@@ -31,7 +32,7 @@ export async function createDocumentApi(doc: Document): Promise<Document> {
 }
 
 export async function updateDocumentApi(id: string, payload: Partial<Document>): Promise<Document> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(id)}`, {
+  const res = await authFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -40,7 +41,7 @@ export async function updateDocumentApi(id: string, payload: Partial<Document>):
 }
 
 export async function deleteDocumentApi(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  const res = await authFetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' })
   await handleResponse(res)
 }
 
