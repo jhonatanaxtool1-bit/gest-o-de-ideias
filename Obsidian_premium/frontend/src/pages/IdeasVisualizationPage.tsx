@@ -40,15 +40,27 @@ export function IdeasVisualizationPage() {
   const [collapsedAreas, setCollapsedAreas] = useState<Set<string>>(new Set())
   const [zoomState, setZoomState] = useState({ x: 0, y: 0, k: 1 })
   const [dragVersion, setDragVersion] = useState(0)
+  const [mobileSheetExpanded, setMobileSheetExpanded] = useState(false)
   const previousPositionRef = useRef(new Map<string, { x: number; y: number }>())
   const manualPositionsRef = useRef(new Map<string, { x: number; y: number }>())
   const modeRef = useRef<ViewMode>(mode)
+  const selectedNodeIdRef = useRef<string | null>(null)
+  const navigateRef = useRef(navigate)
+  navigateRef.current = navigate
 
   const CLUSTER_POSITIONS_KEY = 'idea-cluster-positions'
 
   useEffect(() => {
     modeRef.current = mode
   }, [mode])
+
+  useEffect(() => {
+    selectedNodeIdRef.current = selectedNodeId
+  }, [selectedNodeId])
+
+  useEffect(() => {
+    if (selectedNodeId) setMobileSheetExpanded(true)
+  }, [selectedNodeId])
 
   useEffect(() => {
     manualPositionsRef.current.clear()
@@ -179,6 +191,7 @@ export function IdeasVisualizationPage() {
       })
 
     svg.call(zoomBehavior)
+    svg.on('dblclick.zoom', null) // disable double-click zoom; second tap on node navigates
     return () => {
       svg.on('.zoom', null)
     }
@@ -274,7 +287,13 @@ export function IdeasVisualizationPage() {
         })
       })
       .on('mouseleave', () => setTooltip(null))
-      .on('click', (_event, entry) => setSelectedNodeId(entry.id))
+      .on('click', (_event, entry) => {
+        if (selectedNodeIdRef.current === entry.id && entry.type === 'ideia' && entry.sourceId) {
+          navigateRef.current(`/ideia/${entry.sourceId}`)
+        } else {
+          setSelectedNodeId(entry.id)
+        }
+      })
 
     const dragBehavior = d3
       .drag<SVGGElement, PositionedIdeaGraphNode>()
@@ -372,15 +391,63 @@ export function IdeasVisualizationPage() {
     })
   }, [selectedNode])
 
+  const detailPanelContent = (
+    <div className="space-y-4 px-5 py-4 text-sm">
+      {!selectedNode && <p className="text-zinc-500">Selecione um nó para visualizar os dados.</p>}
+      {selectedNode && (
+        <>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-zinc-500">Título</p>
+            <p className="text-zinc-100 font-medium mt-1">{selectedNode.title}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-zinc-500">Tipo</p>
+            <p className="text-zinc-200 mt-1">{getNodeTypeLabel(selectedNode.type)}</p>
+          </div>
+          {selectedNode.description && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Descrição</p>
+              <p className="text-zinc-300 mt-1 leading-relaxed">{selectedNode.description}</p>
+            </div>
+          )}
+          {selectedNode.type === 'area' && (
+            <button
+              type="button"
+              onClick={toggleSelectedAreaCollapse}
+              disabled={mode !== 'tree'}
+              className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                mode === 'tree'
+                  ? 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700'
+                  : 'bg-zinc-900 text-zinc-500 cursor-not-allowed'
+              }`}
+            >
+              {collapsedAreas.has(selectedNode.id) ? 'Expandir área' : 'Colapsar área'}
+            </button>
+          )}
+          {selectedNode.type === 'ideia' && (
+            <button
+              type="button"
+              onClick={() => navigate(`/ideia/${selectedNode.sourceId}`)}
+              className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white hover:bg-accent-bright transition-colors shadow-lg shadow-accent/20"
+            >
+              Abrir ideia no editor →
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  )
+
   return (
     <div ref={containerRef} className="relative h-full w-full bg-surface-950 overflow-hidden">
       <IdeasVisualizationControls mode={mode} onChangeMode={setMode} />
 
       <svg ref={svgRef} className="h-full w-full" role="img" aria-label="Segundo Cérebro" />
 
+      {/* Tooltip — desktop only (touch devices use the bottom sheet) */}
       {tooltip && (
         <div
-          className="pointer-events-none absolute z-30 rounded-lg border border-zinc-700 bg-zinc-900/95 px-3 py-2 shadow-xl"
+          className="pointer-events-none hidden md:block absolute z-30 rounded-lg border border-zinc-700 bg-zinc-900/95 px-3 py-2 shadow-xl"
           style={{ left: tooltip.x, top: tooltip.y }}
         >
           <p className="text-xs text-zinc-400">{getNodeTypeLabel(tooltip.node.type)}</p>
@@ -388,61 +455,64 @@ export function IdeasVisualizationPage() {
         </div>
       )}
 
-      <aside className="absolute bottom-0 md:bottom-auto md:right-0 md:top-0 z-20 h-[40vh] md:h-full w-full md:w-80 border-t md:border-t-0 md:border-l border-zinc-800 bg-surface-900/95 backdrop-blur transition-transform overflow-y-auto">
-        <div className="border-b border-zinc-800 px-5 py-4">
+      {/* ── DESKTOP SIDEBAR ── */}
+      <aside className="hidden md:flex flex-col absolute right-0 top-0 z-20 h-full w-80 border-l border-zinc-800 bg-surface-900/95 backdrop-blur overflow-y-auto">
+        <div className="border-b border-zinc-800 px-5 py-4 flex-none">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Painel de Detalhes</h2>
         </div>
-        <div className="space-y-4 px-5 py-4 text-sm">
-          {!selectedNode && <p className="text-zinc-500">Selecione um no para visualizar os dados.</p>}
-          {selectedNode && (
-            <>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Titulo</p>
-                <p className="text-zinc-100 font-medium mt-1">{selectedNode.title}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Tipo</p>
-                <p className="text-zinc-200 mt-1">{getNodeTypeLabel(selectedNode.type)}</p>
-              </div>
-              {selectedNode.description && (
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-zinc-500">Descricao</p>
-                  <p className="text-zinc-300 mt-1 leading-relaxed">{selectedNode.description}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Metadata</p>
-                <pre className="mt-1 max-h-40 overflow-auto rounded-lg border border-zinc-800 bg-surface-950 p-2 text-xs text-zinc-300">
-                  {JSON.stringify(selectedNode.metadata ?? {}, null, 2)}
-                </pre>
-              </div>
-              {selectedNode.type === 'area' && (
-                <button
-                  type="button"
-                  onClick={toggleSelectedAreaCollapse}
-                  disabled={mode !== 'tree'}
-                  className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors ${mode === 'tree'
-                      ? 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700'
-                      : 'bg-zinc-900 text-zinc-500 cursor-not-allowed'
-                    }`}
-                >
-                  {collapsedAreas.has(selectedNode.id) ? 'Expandir area' : 'Colapsar area'}
-                </button>
-              )}
-              {selectedNode.type === 'ideia' && (
-                <button
-                  type="button"
-                  onClick={() => navigate(`/ideia/${selectedNode.sourceId}`)}
-                  className="rounded-lg bg-accent/20 border border-accent/40 px-3 py-2 text-xs font-medium text-accent hover:bg-accent/30 transition-colors"
-                >
-                  Abrir ideia no editor
-                </button>
-              )}
-            </>
-          )}
-        </div>
+        {detailPanelContent}
       </aside>
 
+      {/* ── MOBILE BOTTOM SHEET ── */}
+      <div
+        className={`md:hidden absolute bottom-0 left-0 right-0 z-20 flex flex-col rounded-t-2xl border-t border-zinc-800 bg-surface-900 transition-[height] duration-300 ease-out ${
+          mobileSheetExpanded && selectedNode ? 'h-[58vh]' : 'h-14'
+        }`}
+      >
+        {/* Handle bar */}
+        <button
+          type="button"
+          onClick={() => selectedNode && setMobileSheetExpanded((v) => !v)}
+          className="relative flex-none flex items-center gap-3 px-4 h-14 w-full text-left"
+        >
+          {/* drag pill */}
+          <span className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-zinc-700" />
+          <span className="flex-1 text-sm truncate text-zinc-300 mt-1">
+            {selectedNode ? selectedNode.title : 'Toque em um nó para ver detalhes'}
+          </span>
+          {selectedNode?.type === 'ideia' && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate(`/ideia/${selectedNode.sourceId}`)
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/ideia/${selectedNode.sourceId}`)}
+              className="flex-none rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white mt-1"
+            >
+              Abrir →
+            </span>
+          )}
+          {selectedNode && (
+            <svg
+              className={`flex-none h-4 w-4 text-zinc-500 mt-1 transition-transform duration-300 ${mobileSheetExpanded ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+            </svg>
+          )}
+        </button>
+
+        {/* Expanded content */}
+        {mobileSheetExpanded && selectedNode && (
+          <div className="flex-1 overflow-y-auto">
+            {detailPanelContent}
+          </div>
+        )}
+      </div>
+
+      {/* ── MINIMAP (desktop only) ── */}
       <div className="hidden md:block absolute bottom-5 right-[21rem] z-20 w-56 rounded-xl border border-zinc-700 bg-zinc-900/80 p-2 backdrop-blur">
         <p className="px-1 pb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-400">MiniMap</p>
         <svg className="h-36 w-full rounded-md border border-zinc-800 bg-surface-950" viewBox={minimapViewBox}>
@@ -475,11 +545,12 @@ export function IdeasVisualizationPage() {
         </svg>
       </div>
 
+      {/* ── STATS (desktop only) ── */}
       <div className="hidden md:block absolute bottom-5 left-5 z-20 rounded-xl border border-zinc-700 bg-zinc-900/75 px-3 py-2 text-xs text-zinc-300 backdrop-blur">
-        <p>Nos: {layoutResult.nodes.length}</p>
+        <p>Nós: {layoutResult.nodes.length}</p>
         <p>Links: {layoutResult.links.length}</p>
         <p>Zoom: {zoomState.k.toFixed(2)}x</p>
-        {selectedNode && selectedNode.type === 'area' && <p>Ideias nesta area: {areaChildrenCount.get(selectedNode.id) ?? 0}</p>}
+        {selectedNode?.type === 'area' && <p>Ideias nesta área: {areaChildrenCount.get(selectedNode.id) ?? 0}</p>}
       </div>
     </div>
   )
