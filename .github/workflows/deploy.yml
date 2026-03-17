@@ -11,12 +11,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: Configure env
     env:
       DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       BOT_TELEGRAM_TOKEN: ${{ secrets.BOT_TELEGRAM_TOKEN }}
-      BOT_OPENROUTER_KEY: ${{ secrets.BOT_OPENROUTER_KEY }}
+      BOT_OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       BOT_NOTION_TOKEN: ${{ secrets.BOT_NOTION_TOKEN }}
-      BOT_ALLOWED_USERS: ${{ secrets.BOT_ALLOWED_USERS }}
+      BOT_ALLOWED_USERS: ${{ secrets.ALLOWED_TELEGRAM_USERS }}
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
