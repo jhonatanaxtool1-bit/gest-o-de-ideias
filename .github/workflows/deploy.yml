@@ -17,6 +17,10 @@ jobs:
       BOT_OPENROUTER_KEY: ${{ secrets.BOT_OPENROUTER_KEY }}
       BOT_NOTION_TOKEN: ${{ secrets.BOT_NOTION_TOKEN }}
       BOT_ALLOWED_USERS: ${{ secrets.ALLOWED_TELEGRAM_USERS }}
+      AUTH_USERNAME: ${{ secrets.AUTH_USERNAME }}
+      AUTH_PASSWORD: ${{ secrets.AUTH_PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      BOT_API_KEY: ${{ secrets.BOT_API_KEY }}
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -25,7 +29,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || '22' }}
-          envs: DEPLOY_PATH,BOT_TELEGRAM_TOKEN,BOT_OPENROUTER_KEY,BOT_NOTION_TOKEN,BOT_ALLOWED_USERS
+          envs: DEPLOY_PATH,BOT_TELEGRAM_TOKEN,BOT_OPENROUTER_KEY,BOT_NOTION_TOKEN,BOT_ALLOWED_USERS,AUTH_USERNAME,AUTH_PASSWORD,JWT_SECRET,BOT_API_KEY
           script: |
             set -e
             cd "$DEPLOY_PATH"
@@ -48,6 +52,15 @@ jobs:
               echo "      Va em Settings > Secrets > Actions e adicione o secret." >&2
               exit 1
             fi
+
+            # ── Escrever .env da raiz (backend) ─────────────────────────
+            echo ">>> Escrevendo .env da raiz a partir dos GitHub Secrets..."
+            printf 'AUTH_USERNAME=%s\n' "${AUTH_USERNAME:-admin}" > .env
+            printf 'AUTH_PASSWORD=%s\n' "$AUTH_PASSWORD"         >> .env
+            printf 'JWT_SECRET=%s\n'    "$JWT_SECRET"            >> .env
+            printf 'JWT_EXPIRES_IN=7d\n'                         >> .env
+            printf 'BOT_API_KEY=%s\n'   "$BOT_API_KEY"           >> .env
+            echo ".env da raiz escrito com sucesso."
 
             echo ">>> Escrevendo .env do bot a partir dos GitHub Secrets..."
             printf 'TELEGRAM_BOT_TOKEN=%s\n' "$BOT_TELEGRAM_TOKEN"   > "$BOT_ENV"
