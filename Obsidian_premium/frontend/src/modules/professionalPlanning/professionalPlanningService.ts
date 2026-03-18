@@ -1,4 +1,5 @@
 import { uuid } from '@/utils/uuid'
+import { authFetch } from '@/api/authFetch'
 import type { PlanningCard, PlanningCardCreateInput, PlanningCardUpdateInput } from './types'
 
 const DEFAULT_API_BASE_URL = ''
@@ -57,7 +58,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   let response: Response
   try {
-    response = await fetch(getEndpoint(path), {
+    response = await authFetch(getEndpoint(path), {
       ...init,
       headers: {
         ...headers,

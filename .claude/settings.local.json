@@ -9,7 +9,10 @@
       "Bash(grep -r \"lists\\\\|listas\" 'c:\\\\trabalho\\\\projeto\\\\python\\\\projeto_web\\\\gestão de ideias\\\\Obsidian_premium\\\\backend' --include=*.js --include=*.json)",
       "Bash(docker exec:*)",
       "Bash(docker ps:*)",
-      "Bash(docker-compose up:*)"
+      "Bash(docker-compose up:*)",
+      "Read(//c/trabalho/projeto/python/projeto_web/gestão de ideias/Obsidian_premium/frontend/**)",
+      "Read(//c/trabalho/projeto/python/projeto_web/gestão de ideias/Obsidian_premium/frontend/src/**)",
+      "Read(//c/trabalho/projeto/python/projeto_web/gestão de ideias/**)"
     ]
   }
 }

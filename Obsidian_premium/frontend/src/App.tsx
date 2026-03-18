@@ -10,7 +10,6 @@ import { ProfessionalPlanningPage } from '@/pages/ProfessionalPlanningPage'
 import { PersonalPlanningPage } from '@/pages/PersonalPlanningPage'
 import { DailyTasksPage } from '@/pages/DailyTasksPage'
 import { IdeasVisualizationPage } from '@/pages/IdeasVisualizationPage'
-import { LembretesPage } from '@/pages/LembretesPage'
 import { LoginPage } from '@/pages/LoginPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -40,7 +39,6 @@ function App() {
           <Route path="tarefas-diarias" element={<DailyTasksPage />} />
           <Route path="planejamento-profissional" element={<ProfessionalPlanningPage />} />
           <Route path="planejamento-pessoal" element={<PersonalPlanningPage />} />
-          <Route path="lembretes" element={<LembretesPage />} />
           <Route path="ideia/:id" element={<IdeaEditorPage />} />
           <Route path="doc/:id" element={<DocumentPage />} />
           <Route path="doc/new" element={<Navigate to="/ideia/new" replace />} />

@@ -23,12 +23,6 @@ const SidebarIcons = {
       <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
     </svg>
   ),
-  lembretes: (
-    <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13 22a2 2 0 0 1-2-2v-2" />
-    </svg>
-  ),
   empresarial: (
     <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
@@ -62,7 +56,6 @@ export function Layout() {
   const isDailyTasks = location.pathname === '/tarefas-diarias'
   const isIdeasVisualization = location.pathname === '/visualizacao-ideias'
   const isIdeiaNew = location.pathname === '/ideia/new'
-  const isLembretes = location.pathname === '/lembretes'
 
   const linkClass = (active: boolean) =>
     `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${active ? 'bg-accent/15 text-accent' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
@@ -126,10 +119,6 @@ export function Layout() {
           <Link to="/tarefas-diarias" className={linkClass(isDailyTasks)}>
             {SidebarIcons.tarefas}
             Tarefas Diarias
-          </Link>
-          <Link to="/lembretes" className={linkClass(isLembretes)}>
-            {SidebarIcons.lembretes}
-            Lembretes
           </Link>
           <Link to="/planejamento-profissional" className={linkClass(isProfessionalPlanning)}>
             {SidebarIcons.empresarial}
