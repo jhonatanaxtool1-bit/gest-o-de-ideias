@@ -44,18 +44,24 @@ Sua resposta deve ser SEMPRE e APENAS um único objeto JSON válido, sem texto a
 Regra: nunca escreva texto livre. Só retorne o JSON. Analise a intenção do usuário com cuidado. Se o usuário quiser "lançar" algo, use a ação de "criar". Se quiser "consultar", use a ação de "listar" ou "buscar". Se quiser "editar", use a ação de "atualizar".
 
 Formato obrigatório:
-{"resposta": "sua mensagem curta aqui", "acao": "responder|salvar_ideia|criar_tarefa_planejamento|criar_tarefa_planejamento_pessoal|atualizar_ideia|criar_lembrete|lançar_lembretes|listar_planejamentos_empresariais|listar_planejamentos_pessoais|listar_lembretes_ativos|listar_categorias|buscar_ideia|atualizar_planejamento|atualizar_planejamento_pessoal|atualizar_lembrete", "dados": {}}
+{"resposta": "sua mensagem curta aqui", "acao": "responder|salvar_ideia|criar_tarefa_planejamento|criar_tarefa_planejamento_pessoal|atualizar_ideia|criar_lembrete|lançar_lembretes|listar_planejamentos_empresariais|listar_planejamentos_pessoais|listar_lembretes_ativos|listar_categorias|buscar_ideia|atualizar_planejamento|atualizar_planejamento_pessoal|atualizar_lembrete|excluir_ideia|excluir_tarefa_empresarial|excluir_tarefa_pessoal|excluir_lembrete|criar_tarefa_diaria|concluir_tarefa_diaria|listar_tarefas_diarias", "dados": {}}
 
 - resposta: mensagem breve, inteligente e cordial (sempre preencha).
-- acao: "responder" para conversa livre; "salvar_ideia" para guardar ideia; "criar_tarefa_planejamento" ou "criar_tarefa_planejamento_pessoal" APENAS para CRIAR uma tarefa nova; "atualizar_ideia", "criar_lembrete", "atualizar_planejamento", "atualizar_planejamento_pessoal", "atualizar_lembrete" para alterar ou criar entidades; "lançar_lembretes" para ver vencidos; e use os seguintes para CONSULTAR/LISTAR: "listar_planejamentos_empresariais" (consultar tarefas empresariais existentes), "listar_planejamentos_pessoais" (consultar tarefas pessoais existentes), "listar_lembretes_ativos", "listar_categorias", e "buscar_ideia" para buscar dados específicos.
+- acao: "responder" para conversa livre; "salvar_ideia" para guardar ideia; "criar_tarefa_planejamento" ou "criar_tarefa_planejamento_pessoal" APENAS para CRIAR uma tarefa nova; "atualizar_ideia", "criar_lembrete", "atualizar_planejamento", "atualizar_planejamento_pessoal", "atualizar_lembrete" para alterar ou criar entidades; "lançar_lembretes" para ver vencidos; e use os seguintes para CONSULTAR/LISTAR: "listar_planejamentos_empresariais" (consultar tarefas empresariais existentes), "listar_planejamentos_pessoais" (consultar tarefas pessoais existentes), "listar_lembretes_ativos", "listar_categorias", e "buscar_ideia" para buscar dados específicos. Para EXCLUIR use: "excluir_ideia", "excluir_tarefa_empresarial", "excluir_tarefa_pessoal", "excluir_lembrete". Para TAREFAS DIÁRIAS: "criar_tarefa_diaria", "concluir_tarefa_diaria", "listar_tarefas_diarias".
 - dados: só quando acao não for "responder". Exemplos:
   - salvar_ideia: {"titulo": "...", "resumo": "...", "tags": [], "interest": "nome do interesse", "area": "nome da área"}
   - criar_tarefa_planejamento, atualizar_planejamento: {"id": "uuid se atualizar", "titulo": "...", "status": "todo", "priority": "medium", "isFinalized": false}
   - criar_tarefa_planejamento_pessoal, atualizar_planejamento_pessoal: {"id": "uuid se atualizar", "titulo": "...", "status": "todo", "priority": "medium", "isFinalized": false}
   - atualizar_ideia: {"id": "uuid da ideia", "titulo": "opcional", "resumo": "opcional", "interest": "opcional", "area": "opcional", "tags": "opcional"}
   - criar_lembrete, atualizar_lembrete: {"id": "uuid se atualizar", "titulo": "...", "body": "opcional", "firstDueAt": "ISO 8601 SEMPRE com offset de Brasilia (UTC-3), ex: '2026-03-04T23:55:00-03:00'. NUNCA use Z nem omita o offset.", "recurrence": "once|daily|every_2_days|weekly"}
-  - lançar_lembretes, listar_planejamentos_empresariais, listar_planejamentos_pessoais, listar_lembretes_ativos, listar_categorias: dados vazio {}
-  - buscar_ideia: {"termo": "um trecho do título que o usuário está buscando para encontrar a ideia"}
+  - lançar_lembretes, listar_planejamentos_empresariais, listar_planejamentos_pessoais, listar_lembretes_ativos, listar_categorias, listar_tarefas_diarias: dados vazio {}
+  - buscar_ideia: {"termo": "trecho do título", "interest": "opcional", "area": "opcional", "tag": "opcional"}
+  - excluir_ideia: {"id": "uuid da ideia", "titulo": "título para confirmação"}
+  - excluir_tarefa_empresarial: {"id": "uuid do card", "titulo": "título para confirmação"}
+  - excluir_tarefa_pessoal: {"id": "uuid do card", "titulo": "título para confirmação"}
+  - excluir_lembrete: {"id": "uuid do lembrete", "titulo": "título para confirmação"}
+  - criar_tarefa_diaria: {"titulo": "..."}
+  - concluir_tarefa_diaria: {"id": "uuid da tarefa diária"}
 
 Regra OBRIGATÓRIA ao salvar ideia (acao salvar_ideia):
 1) Primeiro escolha um INTERESSE da lista que faça sentido para a ideia. PREFIRA SEMPRE um interesse já existente na lista.
@@ -81,7 +87,14 @@ Exemplo para criar LEMBRETE (so com palavras explicitas): {"resposta": "Lembrete
 Exemplo para tarefa no planejamento pessoal: {"resposta": "Tarefa adicionada.", "acao": "criar_tarefa_planejamento_pessoal", "dados": {"titulo": "Comprar presente", "status": "todo", "priority": "medium"}}
 Exemplo para editar planejamento: {"resposta": "Atualizando tarefa.", "acao": "atualizar_planejamento", "dados": {"id": "uuid", "priority": "high"}}
 Exemplo para editar lembrete: {"resposta": "Lembrete alterado.", "acao": "atualizar_lembrete", "dados": {"id": "uuid", "titulo": "Novo título"}}
-Exemplo quando pede "quais meus lembretes pendentes", "me avise dos lembretes": {"resposta": "Verificando lembretes vencidos.", "acao": "lançar_lembretes", "dados": {}}"""
+Exemplo quando pede "quais meus lembretes pendentes", "me avise dos lembretes": {"resposta": "Verificando lembretes vencidos.", "acao": "lançar_lembretes", "dados": {}}
+Exemplo para excluir ideia: {"resposta": "Vou excluir essa ideia.", "acao": "excluir_ideia", "dados": {"id": "uuid", "titulo": "Título da ideia"}}
+Exemplo para excluir tarefa empresarial: {"resposta": "Vou excluir essa tarefa.", "acao": "excluir_tarefa_empresarial", "dados": {"id": "uuid", "titulo": "Título da tarefa"}}
+Exemplo para excluir tarefa pessoal: {"resposta": "Vou excluir essa tarefa.", "acao": "excluir_tarefa_pessoal", "dados": {"id": "uuid", "titulo": "Título da tarefa"}}
+Exemplo para excluir lembrete: {"resposta": "Vou excluir esse lembrete.", "acao": "excluir_lembrete", "dados": {"id": "uuid", "titulo": "Título do lembrete"}}
+Exemplo para criar tarefa diária: {"resposta": "Tarefa de hoje adicionada.", "acao": "criar_tarefa_diaria", "dados": {"titulo": "Revisar e-mails"}}
+Exemplo para listar tarefas de hoje: {"resposta": "Suas tarefas de hoje:", "acao": "listar_tarefas_diarias", "dados": {}}
+Exemplo para concluir tarefa diária: {"resposta": "Tarefa marcada como concluída.", "acao": "concluir_tarefa_diaria", "dados": {"id": "uuid"}}"""
 # Prompt separado para refino antes de salvar.
 PROMPT_REFINO_IDEIA = """Você vai refinar um texto de ideia ANTES de ser salvo.
 
@@ -133,6 +146,15 @@ def _formatar_contexto_memoria(contexto: dict) -> str:
         partes.append(f"Perfil: {u.get('perfil', '')}")
         if u.get("interesses"):
             partes.append(f"Interesses: {', '.join(u['interesses'])}")
+    if "contexto_recente" in contexto:
+        ctx = contexto["contexto_recente"]
+        ui = ctx.get("ultima_ideia", {})
+        if ui.get("interesse") and ui.get("area"):
+            partes.append(f"Última área usada: {ui['interesse']} > {ui['area']}")
+        cats = ctx.get("categorias_frequentes", {})
+        if cats:
+            top = sorted(cats.items(), key=lambda x: -x[1])[:2]
+            partes.append(f"Categorias frequentes: {', '.join(k for k, _ in top)}")
     return " | ".join(partes) if partes else ""
 
 

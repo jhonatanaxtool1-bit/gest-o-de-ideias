@@ -190,3 +190,76 @@ def atualizar_lembrete(reminder_id: str, payload: dict) -> dict:
     resp.raise_for_status()
     return resp.json()
 
+
+# --- Operações de exclusão ---
+
+def deletar_documento(doc_id: str) -> None:
+    """Remove permanentemente uma ideia/documento."""
+    resp = requests.delete(_base(f"/api/documents/{doc_id}"), headers=_auth_headers(), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+
+
+def deletar_card_planejamento(card_id: str) -> None:
+    """Remove permanentemente um card do planejamento empresarial."""
+    resp = requests.delete(_base(f"/api/professional-planning/cards/{card_id}"), headers=_auth_headers(), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+
+
+def deletar_card_planejamento_pessoal(card_id: str) -> None:
+    """Remove permanentemente um card do planejamento pessoal."""
+    resp = requests.delete(_base(f"/api/personal-planning/cards/{card_id}"), headers=_auth_headers(), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+
+
+def deletar_lembrete(reminder_id: str) -> None:
+    """Remove permanentemente um lembrete."""
+    resp = requests.delete(_base(f"/api/reminders/{reminder_id}"), headers=_auth_headers(), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+
+
+# --- Tarefas Diárias ---
+
+def listar_tarefas_diarias() -> List[dict]:
+    """Lista as tarefas diárias de hoje."""
+    resp = requests.get(_base("/api/daily-tasks"), headers=_auth_headers(), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def criar_tarefa_diaria(title: str) -> dict:
+    """Cria uma nova tarefa diária."""
+    payload = {
+        "id": str(uuid.uuid4()),
+        "title": title,
+        "done": False,
+        "createdAt": datetime.utcnow().isoformat(),
+    }
+    resp = requests.post(_base("/api/daily-tasks"), json=payload, headers=_auth_headers(), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def atualizar_tarefa_diaria(task_id: str, done: bool) -> dict:
+    """Marca uma tarefa diária como concluída ou pendente."""
+    resp = requests.patch(_base(f"/api/daily-tasks/{task_id}"), json={"done": done}, headers=_auth_headers(), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+
+
+# --- Busca ---
+
+def buscar_documentos(termo: str = "", interest: str = "", area: str = "", tag: str = "") -> List[dict]:
+    """Busca documentos no servidor com filtros opcionais."""
+    params: dict = {}
+    if termo:
+        params["q"] = termo
+    if interest:
+        params["interest"] = interest
+    if area:
+        params["area"] = area
+    if tag:
+        params["tag"] = tag
+    resp = requests.get(_base("/api/documents/search"), params=params, headers=_auth_headers(), timeout=OPENROUTER_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
+

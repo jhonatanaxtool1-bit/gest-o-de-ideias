@@ -22,6 +22,32 @@ router.get('/', (req, res) => {
   res.json(rows.map(rowToDoc))
 })
 
+router.get('/search', (req, res) => {
+  const db = req.app.locals.db
+  const { q, tag, interest, area } = req.query
+  let query = 'SELECT * FROM documents WHERE 1=1'
+  const params = []
+  if (q) {
+    query += ' AND (title LIKE ? OR content LIKE ?)'
+    params.push(`%${q}%`, `%${q}%`)
+  }
+  if (interest) {
+    query += ' AND interest LIKE ?'
+    params.push(`%${interest}%`)
+  }
+  if (area) {
+    query += ' AND area LIKE ?'
+    params.push(`%${area}%`)
+  }
+  if (tag) {
+    query += ' AND tags LIKE ?'
+    params.push(`%"${tag}"%`)
+  }
+  query += ' ORDER BY title'
+  const rows = db.prepare(query).all(...params)
+  res.json(rows.map(rowToDoc))
+})
+
 router.get('/:id', (req, res) => {
   const db = req.app.locals.db
   const row = db.prepare('SELECT * FROM documents WHERE id = ?').get(req.params.id)

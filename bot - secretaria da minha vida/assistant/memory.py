@@ -4,6 +4,7 @@ Funções para carregar, salvar e atualizar; caminho centralizado em config.
 """
 import json
 import logging
+import datetime as _dt
 from copy import deepcopy
 from pathlib import Path
 
@@ -95,3 +96,44 @@ def clear_pending_action() -> dict:
         del atual['pending_action']
         salvar_memoria(atual)
     return atual
+
+
+def atualizar_contexto_recente(acao: str, dados: dict | None = None) -> None:
+    """Registra a ação mais recente e atualiza contexto para melhorar sugestões do LLM."""
+    try:
+        atual = carregar_memoria()
+        if "contexto_recente" not in atual:
+            atual["contexto_recente"] = {
+                "ultima_ideia": {},
+                "ultimas_acoes": [],
+                "categorias_frequentes": {},
+            }
+
+        ctx = atual["contexto_recente"]
+        now = _dt.datetime.utcnow().isoformat()
+
+        # Registrar nas últimas 5 ações
+        ultimas = ctx.get("ultimas_acoes", [])
+        ultimas.append({"acao": acao, "timestamp": now})
+        ctx["ultimas_acoes"] = ultimas[-5:]
+
+        # Atualizar última ideia e categoria frequente
+        if acao == "salvar_ideia" and dados:
+            interesse = dados.get("interest", "")
+            area = dados.get("area", "")
+            ctx["ultima_ideia"] = {
+                "interesse": interesse,
+                "area": area,
+                "titulo": dados.get("titulo", ""),
+                "timestamp": now,
+            }
+            if interesse and area:
+                cat_key = f"{interesse} > {area}"
+                cats = ctx.get("categorias_frequentes", {})
+                cats[cat_key] = cats.get(cat_key, 0) + 1
+                ctx["categorias_frequentes"] = cats
+
+        atual["contexto_recente"] = ctx
+        salvar_memoria(atual)
+    except Exception as e:
+        logger.warning("Falha ao atualizar contexto recente: %s", e)
