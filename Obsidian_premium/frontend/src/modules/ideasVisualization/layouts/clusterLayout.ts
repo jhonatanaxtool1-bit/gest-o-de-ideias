@@ -20,10 +20,11 @@ const GROUPS: GroupDef[] = [
 export function buildClusterLayout(nodes: IdeaGraphNode[], links: IdeaGraphLink[], options: ClusterLayoutOptions): LayoutResult {
   const width = Math.max(options.width, 320)
   const height = Math.max(options.height, 320)
-  const leftPadding = 120
-  const rightPadding = 120
-  const topPadding = 120
-  const bottomPadding = 90
+  const small = width < 500
+  const leftPadding = small ? 44 : 120
+  const rightPadding = small ? 44 : 120
+  const topPadding = small ? 72 : 120
+  const bottomPadding = small ? 48 : 90
 
   const groupX = d3
     .scalePoint<IdeaGraphNode['type']>()
@@ -35,7 +36,7 @@ export function buildClusterLayout(nodes: IdeaGraphNode[], links: IdeaGraphLink[
     id: `label-${group.key}`,
     title: group.title,
     x: groupX(group.key) ?? width / 2,
-    y: 70,
+    y: small ? 40 : 70,
   }))
 
   const hierarchyLinks = links.filter((entry) => entry.kind === 'hierarchy')

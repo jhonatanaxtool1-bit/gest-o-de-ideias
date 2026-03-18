@@ -8,11 +8,11 @@ type TreeLayoutOptions = {
 }
 
 export function buildTreeLayout(nodes: IdeaGraphNode[], links: IdeaGraphLink[], options: TreeLayoutOptions): LayoutResult {
-  const margin = 96
   const width = Math.max(options.width, 320)
   const height = Math.max(options.height, 320)
+  const margin = width < 500 ? 32 : 96
   const hierarchyRoot = toTreeHierarchy(nodes)
-  const tree = d3.tree<typeof hierarchyRoot>().nodeSize([110, 180])
+  const tree = d3.tree<typeof hierarchyRoot>().nodeSize(width < 500 ? [70, 120] : [110, 180])
 
   const root = d3.hierarchy(hierarchyRoot, (entry) => entry.children)
   tree(root)

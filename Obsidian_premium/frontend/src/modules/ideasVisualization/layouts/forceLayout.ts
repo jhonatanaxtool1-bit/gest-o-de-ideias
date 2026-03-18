@@ -15,7 +15,7 @@ function nodeRadius(type: IdeaGraphNode['type']): number {
 export function buildForceLayout(nodes: IdeaGraphNode[], links: IdeaGraphLink[], options: ForceLayoutOptions): LayoutResult {
   const width = Math.max(options.width, 320)
   const height = Math.max(options.height, 320)
-  const margin = 80
+  const margin = width < 500 ? 40 : 80
   type LocalNode = IdeaGraphNode & d3.SimulationNodeDatum
   type LocalLink = IdeaGraphLink & d3.SimulationLinkDatum<LocalNode>
 

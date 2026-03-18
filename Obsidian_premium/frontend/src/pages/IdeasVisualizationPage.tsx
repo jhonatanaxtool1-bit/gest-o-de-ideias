@@ -47,8 +47,9 @@ export function IdeasVisualizationPage() {
   const selectedNodeIdRef = useRef<string | null>(null)
   const navigateRef = useRef(navigate)
   navigateRef.current = navigate
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
 
-  const CLUSTER_POSITIONS_KEY = 'idea-cluster-positions'
+  const FORCE_POSITIONS_KEY = 'idea-force-positions'
 
   useEffect(() => {
     modeRef.current = mode
@@ -64,9 +65,9 @@ export function IdeasVisualizationPage() {
 
   useEffect(() => {
     manualPositionsRef.current.clear()
-    if (mode === 'cluster') {
+    if (mode === 'force') {
       try {
-        const saved = localStorage.getItem(CLUSTER_POSITIONS_KEY)
+        const saved = localStorage.getItem(FORCE_POSITIONS_KEY)
         if (saved) {
           const entries = JSON.parse(saved) as Array<[string, { x: number; y: number }]>
           for (const [id, pos] of entries) {
@@ -76,6 +77,12 @@ export function IdeasVisualizationPage() {
       } catch {
         // ignore corrupt data
       }
+    }
+    // Reset zoom to identity on mode change so layout fills the screen
+    const svgNode = svgRef.current
+    const behavior = zoomBehaviorRef.current
+    if (svgNode && behavior) {
+      d3.select(svgNode).transition().duration(350).call(behavior.transform, d3.zoomIdentity)
     }
   }, [mode])
 
@@ -89,9 +96,13 @@ export function IdeasVisualizationPage() {
 
   const areaChildrenCount = useMemo(() => getAreaChildrenCount(graphData.nodes), [graphData.nodes])
 
+  // On mobile subtract the collapsed bottom sheet height so nodes aren't hidden behind it
+  const isMobile = viewport.width < 768
+  const graphHeight = isMobile ? Math.max(320, viewport.height - 60) : viewport.height
+
   const layoutResult = useMemo<LayoutResult>(() => {
     const width = Math.max(320, viewport.width)
-    const height = Math.max(320, viewport.height)
+    const height = Math.max(320, graphHeight)
     const baseNodes = mode === 'tree' ? filterTreeNodesByCollapsedAreas(graphData.nodes, collapsedAreas) : graphData.nodes
     const visibleIds = new Set(baseNodes.map((entry) => entry.id))
     const baseLinks = graphData.links.filter((entry) => visibleIds.has(entry.source) && visibleIds.has(entry.target))
@@ -119,7 +130,7 @@ export function IdeasVisualizationPage() {
       ...result,
       nodes,
     }
-  }, [mode, graphData, collapsedAreas, viewport.height, viewport.width, dragVersion])
+  }, [mode, graphData, collapsedAreas, graphHeight, viewport.width, dragVersion])
 
   const nodesById = useMemo(() => {
     const map = new Map<string, PositionedIdeaGraphNode>()
@@ -190,6 +201,7 @@ export function IdeasVisualizationPage() {
         setZoomState({ x: transform.x, y: transform.y, k: transform.k })
       })
 
+    zoomBehaviorRef.current = zoomBehavior
     svg.call(zoomBehavior)
     svg.on('dblclick.zoom', null) // disable double-click zoom; second tap on node navigates
     return () => {
@@ -200,7 +212,7 @@ export function IdeasVisualizationPage() {
   useEffect(() => {
     const svgNode = svgRef.current
     if (!svgNode) return
-    const svg = d3.select(svgNode).attr('viewBox', `0 0 ${viewport.width} ${viewport.height}`)
+    const svg = d3.select(svgNode).attr('viewBox', `0 0 ${viewport.width} ${graphHeight}`)
     const zoomRoot = svg.select<SVGGElement>('g.zoom-root')
     const linksGroup = zoomRoot.select<SVGGElement>('g.links')
     const nodesGroup = zoomRoot.select<SVGGElement>('g.nodes')
@@ -264,15 +276,23 @@ export function IdeasVisualizationPage() {
       .attr('stroke', (entry) => NODE_TYPE_STROKE[entry.type])
       .attr('stroke-width', (entry) => (selectedNodeId === entry.id ? 3 : 1.8))
 
+    const mobileView = viewport.width < 768
+    const maxLabelLen = mobileView ? 14 : 24
+
     enterNodes
       .append('text')
       .attr('class', 'node-title')
       .attr('text-anchor', 'middle')
-      .attr('dy', (entry) => getNodeRadius(entry.type) + 16)
+      .attr('dy', (entry) => getNodeRadius(entry.type) + (mobileView ? 13 : 16))
       .attr('fill', '#e4e4e7')
-      .attr('font-size', (entry) => (entry.type === 'interesse' ? 12 : 11))
+      .attr('font-size', (entry) => {
+        if (entry.type === 'interesse') return mobileView ? 11 : 12
+        return mobileView ? 9 : 11
+      })
       .attr('font-weight', (entry) => (entry.type === 'interesse' ? 600 : 500))
-      .text((entry) => (entry.title.length > 24 ? `${entry.title.slice(0, 24)}...` : entry.title))
+      // On mobile hide idea labels to avoid overlap — tap node to see details in bottom sheet
+      .attr('display', (entry) => (mobileView && entry.type === 'ideia' ? 'none' : null))
+      .text((entry) => (entry.title.length > maxLabelLen ? `${entry.title.slice(0, maxLabelLen)}…` : entry.title))
 
     const mergedNodes = enterNodes.merge(nodeSelection)
 
@@ -302,7 +322,7 @@ export function IdeasVisualizationPage() {
       })
       .on('drag', function onDrag(event, entry) {
         const x = Math.max(16, Math.min(viewport.width - 16, event.x))
-        const y = Math.max(16, Math.min(viewport.height - 16, event.y))
+        const y = Math.max(16, Math.min(graphHeight - 16, event.y))
         manualPositionsRef.current.set(entry.id, { x, y })
         entry.x = x
         entry.y = y
@@ -318,10 +338,10 @@ export function IdeasVisualizationPage() {
           .attr('y2', (linkEntry) => (nodeById.get(linkEntry.target)?.id === entry.id ? y : (nodeById.get(linkEntry.target)?.y ?? 0)))
       })
       .on('end', () => {
-        if (modeRef.current === 'cluster') {
+        if (modeRef.current === 'force') {
           try {
             localStorage.setItem(
-              CLUSTER_POSITIONS_KEY,
+              FORCE_POSITIONS_KEY,
               JSON.stringify([...manualPositionsRef.current.entries()])
             )
           } catch {
@@ -359,7 +379,7 @@ export function IdeasVisualizationPage() {
           .attr('class', 'cluster-label')
           .attr('text-anchor', 'middle')
           .attr('fill', 'rgba(244, 244, 245, 0.82)')
-          .attr('font-size', 14)
+          .attr('font-size', mobileView ? 11 : 14)
           .attr('font-weight', 600)
       )
       .attr('x', (entry) => entry.x)
@@ -367,7 +387,7 @@ export function IdeasVisualizationPage() {
       .text((entry) => entry.title)
 
     previousPositionRef.current = new Map(layoutResult.nodes.map((entry) => [entry.id, { x: entry.x, y: entry.y }]))
-  }, [layoutResult, mode, selectedNodeId, viewport.height, viewport.width])
+  }, [layoutResult, mode, selectedNodeId, graphHeight, viewport.width])
 
   const minimapViewBox = useMemo(() => {
     const entries = layoutResult.nodes
