@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Layout } from '@/components/Layout'
 import { DocumentPage } from '@/pages/DocumentPage'
-import { HomePage } from '@/pages/HomePage'
 import { OrganizationPage } from '@/pages/OrganizationPage'
 import { IdeasPage } from '@/pages/IdeasPage'
 import { IdeaEditorPage } from '@/pages/IdeaEditorPage'
@@ -32,7 +31,7 @@ function App() {
             </RequireAuth>
           }
         >
-          <Route index element={<HomePage />} />
+          <Route index element={<Navigate to="/visualizacao-ideias" replace />} />
           <Route path="organizacao" element={<OrganizationPage />} />
           <Route path="ideias" element={<IdeasPage />} />
           <Route path="visualizacao-ideias" element={<IdeasVisualizationPage />} />
